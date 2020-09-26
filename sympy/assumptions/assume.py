@@ -62,11 +62,9 @@ class AppliedPredicate(Boolean):
     """
     __slots__ = ()
 
-    def __new__(cls, predicate, *args):
-        if predicate.arity != len(args):
-            raise TypeError("%s takes %d argument but %d were given" % (predicate, predicate.arity, len(args)))
-        args = Tuple(*[_sympify(a) for a in args])
-        return Boolean.__new__(cls, predicate, args)
+    def __new__(cls, predicate, arg):
+        arg = _sympify(arg)
+        return Boolean.__new__(cls, predicate, arg)
 
     is_Atom = True  # do not attempt to decompose this
 
@@ -85,7 +83,6 @@ class AppliedPredicate(Boolean):
         x + 1
 
         """
-
         return self._args[1]
 
     @property
@@ -120,6 +117,13 @@ class AppliedPredicate(Boolean):
             if i.is_Boolean or i.is_Symbol or isinstance(i, (Eq, Ne)):
                 return i.binary_symbols
         return set()
+
+class PolyadicAppliedPredicate(AppliedPredicate):
+    def __new__(cls, predicate, *args):
+        if predicate.arity != len(args):
+            raise TypeError("%s takes %d argument but %d were given" % (predicate, predicate.arity, len(args)))
+        args = Tuple(*[_sympify(a) for a in args])
+        return Boolean.__new__(cls, predicate, args)
 
 
 class Predicate(Boolean):
@@ -167,7 +171,10 @@ class Predicate(Boolean):
         return (self.name,)
 
     def __call__(self, *args):
-        return AppliedPredicate(self, *args)
+        if len(args) == 1:
+            arg, = args
+            return AppliedPredicate(self, arg)
+        return PolyadicAppliedPredicate(self, args)
 
     def add_handler(self, handler):
         self.handlers.append(handler)
