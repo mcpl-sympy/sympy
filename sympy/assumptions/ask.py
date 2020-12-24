@@ -19,9 +19,14 @@ from sympy.assumptions.cnf import CNF, EncodedCNF, Literal
 
 class AssumptionKeys:
     """
-    This class contains all the supported keys by ``ask``. It should be accessed via the instance ``sympy.Q``.
+    This class contains all the supported keys by ``ask``.
+    It should be accessed via the instance ``sympy.Q``.
 
     """
+
+    # DO NOT add methods or properties other than predicate keys.
+    # SAT solver checks the properties of Q and use them to compute the
+    # fact system. Non-predicate attributes will break this.
 
     @memoize_property
     def hermitian(self):
@@ -1325,18 +1330,31 @@ def _extract_all_facts(expr, symbol):
 
 def ask(proposition, assumptions=True, context=global_assumptions):
     """
-    Method for inferring properties about objects.
-
-    Explanation
-    ===========
+    Function for inferring properties about objects.
 
     **Syntax**
 
         * ask(proposition)
+            Evaluate the *proposition* in global assumption context.
 
         * ask(proposition, assumptions)
+            Evaluate the *proposition* with respect to *assumptions* in
+            global assumption context.
 
-            where ``proposition`` is any boolean expression
+    Parameters
+    ==========
+
+    proposition : any boolean expression
+        Proposition which will be evaluated to boolean value. If this is
+        not ``AppliedPredicate``, it will be wrapped by ``Q.is_true``.
+
+    assumptions : any boolean expression, optional
+        Local assumptions to evaluate the *proposition*.
+
+    context : AssumptionsContext, optional
+        Default assumptions to evaluate the *proposition*. By default,
+        this is ``global_assumptions``.
+
 
     Examples
     ========
@@ -1350,7 +1368,13 @@ def ask(proposition, assumptions=True, context=global_assumptions):
     >>> ask(Q.prime(4*x), Q.integer(x))
     False
 
+    If the truth value cannot be determined, ``None`` will be returned.
+
+    >>> print(ask(Q.odd(3*x))) # cannot determine unless we know x
+    None
+
     **Remarks**
+
         Relations in assumptions are not implemented (yet), so the following
         will not give a meaningful result.
 
@@ -1443,8 +1467,9 @@ def register_handler(key, handler):
         True
 
     """
-    if type(key) is Predicate:
-        key = key.name
+    # Will be deprecated
+    if isinstance(key, Predicate):
+        key = key.name.name
     Qkey = getattr(Q, key, None)
     if Qkey is not None:
         Qkey.add_handler(handler)
@@ -1454,8 +1479,9 @@ def register_handler(key, handler):
 
 def remove_handler(key, handler):
     """Removes a handler from the ask system. Same syntax as register_handler"""
-    if type(key) is Predicate:
-        key = key.name
+    # Will be deprecated
+    if isinstance(key, Predicate):
+        key = key.name.name
     getattr(Q, key).remove_handler(handler)
 
 
@@ -1543,7 +1569,7 @@ def compute_known_facts(known_facts, known_facts_keys):
 _val_template = 'sympy.assumptions.handlers.%s'
 _handlers = [
     ("antihermitian",     "sets.AskAntiHermitianHandler"),
-    ("finite",           "calculus.AskFiniteHandler"),
+    ("finite",            "calculus.AskFiniteHandler"),
     ("commutative",       "AskCommutativeHandler"),
     ("complex",           "sets.AskComplexHandler"),
     ("composite",         "ntheory.AskCompositeHandler"),
