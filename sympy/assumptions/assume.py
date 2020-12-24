@@ -255,7 +255,7 @@ class Predicate(Boolean):
 
     def eval(self, args, assumptions=True):
         """
-        Evaluate self(*args) under the given assumptions.
+        Evaluate ``self(*args)`` under the given assumptions.
 
         This uses only direct resolution methods, not logical inference.
         """
