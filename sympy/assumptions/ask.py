@@ -5,6 +5,7 @@ from sympy.assumptions.assume import (global_assumptions, Predicate,
 from sympy.core import sympify
 from sympy.core.cache import cacheit
 from sympy.core.relational import Relational
+from sympy.core.kind import BooleanKind
 from sympy.logic.boolalg import (to_cnf, And, Not, Or, Implies, Equivalent,
                                  BooleanFunction, BooleanAtom)
 from sympy.logic.inference import satisfiable
@@ -1385,10 +1386,13 @@ def ask(proposition, assumptions=True, context=global_assumptions):
     """
     from sympy.assumptions.satask import satask
 
-    if not isinstance(proposition, (BooleanFunction, AppliedPredicate, bool, BooleanAtom)):
+    proposition = sympify(proposition)
+    assumptions = sympify(assumptions)
+
+    if isinstance(proposition, Predicate) or proposition.kind is not BooleanKind:
         raise TypeError("proposition must be a valid logical expression")
 
-    if not isinstance(assumptions, (BooleanFunction, AppliedPredicate, bool, BooleanAtom)):
+    if isinstance(assumptions, Predicate) or assumptions.kind is not BooleanKind:
         raise TypeError("assumptions must be a valid logical expression")
 
     if isinstance(proposition, AppliedPredicate):
