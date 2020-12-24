@@ -1,10 +1,17 @@
+"""A module which implements predicates and assumption context."""
+
+from contextlib import contextmanager
 import inspect
 from sympy.core.cache import cacheit
+from sympy.core.containers import Tuple
 from sympy.core.singleton import S
+from sympy.core.symbol import Str
 from sympy.core.sympify import _sympify
 from sympy.logic.boolalg import Boolean
+from sympy.multipledispatch.dispatcher import (
+    Dispatcher, MDNotImplementedError
+)
 from sympy.utilities.source import get_class
-from contextlib import contextmanager
 
 
 class AssumptionsContext(set):
@@ -21,18 +28,40 @@ class AssumptionsContext(set):
     Examples
     ========
 
+    Default assumption context is ``global_assumptions``, which is empty
+    by default.
+
     >>> from sympy import Q
-    >>> from sympy.assumptions.assume import global_assumptions
+    >>> from sympy.assumptions import global_assumptions
     >>> global_assumptions
     AssumptionsContext()
+
+    You can add default assumption.
+
     >>> from sympy.abc import x
     >>> global_assumptions.add(Q.real(x))
     >>> global_assumptions
     AssumptionsContext({Q.real(x)})
+    >>> global_assumptions.add(Q.positive(x))
+    >>> global_assumptions
+    AssumptionsContext({Q.positive(x), Q.real(x)})
+
+    And you can remove it.
+
     >>> global_assumptions.remove(Q.real(x))
     >>> global_assumptions
-    AssumptionsContext()
+    AssumptionsContext({Q.positive(x)})
+
+    ``clear()`` method removes every assumptions.
+
     >>> global_assumptions.clear()
+    >>> global_assumptions
+    AssumptionsContext()
+
+    See Also
+    ========
+
+    assuming
 
     """
 
@@ -50,26 +79,41 @@ global_assumptions = AssumptionsContext()
 
 
 class AppliedPredicate(Boolean):
-    """The class of expressions resulting from applying a Predicate.
+    """
+    The class of expressions resulting from applying ``Predicate`` to
+    the arguments. ``AppliedPredicate`` merely wraps its argument and
+    remain unevaluated. To evaluate it, use ``ask`` function.
 
     Examples
     ========
 
-    >>> from sympy import Q, Symbol
-    >>> x = Symbol('x')
-    >>> Q.integer(x)
-    Q.integer(x)
-    >>> type(Q.integer(x))
+    >>> from sympy import Q, ask
+    >>> Q.integer(1)
+    Q.integer(1)
+
+    ``func`` attribute returns the predicate, and ``args`` attribute
+    returns the argument.
+
+    >>> type(Q.integer(1))
     <class 'sympy.assumptions.assume.AppliedPredicate'>
+    >>> Q.integer(1).func
+    Q.integer
+    >>> Q.integer(1).args
+    (1,)
+
+    Applied predicate can be evaluated to boolean value.
+
+    >>> ask(Q.integer(1))
+    True
 
     """
     __slots__ = ()
 
-    def __new__(cls, predicate, arg):
-        arg = _sympify(arg)
-        return Boolean.__new__(cls, predicate, arg)
-
     is_Atom = True  # do not attempt to decompose this
+
+    def __new__(cls, predicate, *args):
+        args = Tuple(*[_sympify(a) for a in args])
+        return super().__new__(cls, predicate, args)
 
     @property
     def arg(self):
@@ -86,11 +130,14 @@ class AppliedPredicate(Boolean):
         x + 1
 
         """
-        return self._args[1]
+        args = self.args
+        if len(args) == 1:
+            return args[0]
+        return args
 
     @property
     def args(self):
-        return self._args[1:]
+        return self._args[1]
 
     @property
     def func(self):
@@ -98,7 +145,8 @@ class AppliedPredicate(Boolean):
 
     @cacheit
     def sort_key(self, order=None):
-        return (self.class_key(), (2, (self.func.name, self.arg.sort_key())),
+        return (self.class_key(),
+                (2, (self.func.sort_key(), self.arg.sort_key())),
                 S.One.sort_key(), S.One)
 
     def __eq__(self, other):
@@ -110,12 +158,12 @@ class AppliedPredicate(Boolean):
         return super().__hash__()
 
     def _eval_ask(self, assumptions):
-        return self.func.eval(self.arg, assumptions)
+        return self.func.eval(self.args, assumptions)
 
     @property
     def binary_symbols(self):
         from sympy.core.relational import Eq, Ne
-        if self.func.name in ['is_true', 'is_false']:
+        if self.func.name.name in ['is_true', 'is_false']:
             i = self.arg
             if i.is_Boolean or i.is_Symbol or isinstance(i, (Eq, Ne)):
                 return i.binary_symbols
@@ -124,41 +172,128 @@ class AppliedPredicate(Boolean):
 
 class Predicate(Boolean):
     """
-    A predicate is a function that returns a boolean value.
+    A predicate is a function that returns a boolean value [1].
 
-    Predicates merely wrap their argument and remain unevaluated:
+    Explanation
+    ===========
 
-        >>> from sympy import Q, ask
-        >>> type(Q.prime)
-        <class 'sympy.assumptions.assume.Predicate'>
-        >>> Q.prime.name
-        'prime'
-        >>> Q.prime(7)
-        Q.prime(7)
-        >>> _.func.name
-        'prime'
+    When a predicate is applied to arguments, ``AppliedPredicate``
+    instance is returned. This merely wraps the argument and remain
+    unevaluated. To obtain the truth value of applied predicate, use the
+    function ``ask``.
 
-    To obtain the truth value of an expression containing predicates, use
-    the function ``ask``:
+    Every predicate in SymPy can be accessed via the property of ``Q``.
+    For example, ``Q.even`` returns the predicate which checks if the
+    argument is even number.
 
-        >>> ask(Q.prime(7))
-        True
+    Currently, only unary predicate is supported. Polyadic predicate
+    will be implemented in future.
+
+    Examples
+    ========
+
+    Structure of predicate:
+
+    >>> from sympy import Q, Predicate
+    >>> isinstance(Q.prime, Predicate)
+    True
+    >>> Q.prime.name
+    Str('prime')
+
+    Applying and evaluating to boolean value:
+
+    >>> from sympy import ask
+    >>> expr = Q.prime(7)
+    >>> ask(expr)
+    True
 
     The tautological predicate ``Q.is_true`` can be used to wrap other objects:
+    >>> from sympy.abc import x
+    >>> Q.is_true(x > 1)
+    Q.is_true(x > 1)
 
-        >>> from sympy.abc import x
-        >>> Q.is_true(x > 1)
-        Q.is_true(x > 1)
+    References
+    ==========
+
+    .. [1] https://en.wikipedia.org/wiki/Predicate_(mathematical_logic)
 
     """
 
     is_Atom = True
+    _handler = None
 
     def __new__(cls, name, handlers=None):
-        obj = Boolean.__new__(cls)
-        obj.name = name
+        if cls is Predicate:
+            return UndefinedPredicate(name, handlers)
+
+        if not isinstance(name, Str):
+            name = Str(name)
+        obj = super().__new__(cls, name)
+        return obj
+
+    @classmethod
+    def get_handler(cls):
+        if cls._handler is None:
+            name = ''.join(["Ask", cls.__name__.capitalize(), "Handler"])
+            handler = Dispatcher(name, doc="Handler for key %s" % name)
+            cls._handler = handler
+        return cls._handler
+
+    @property
+    def handler(self):
+        return self.get_handler()
+
+    @property
+    def name(self):
+        return self.args[0]
+
+    def register(self, *types, **kwargs):
+        return lambda func: self.handler.register(*types, **kwargs)(func)
+
+    def __call__(self, *args):
+        return AppliedPredicate(self, *args)
+
+    def eval(self, args, assumptions=True):
+        """
+        Evaluate self(*args) under the given assumptions.
+
+        This uses only direct resolution methods, not logical inference.
+        """
+        types = tuple(type(a) for a in args)
+        result = None
+        for func in self.handler.dispatch_iter(*types):
+            try:
+                result = func(*args, assumptions)
+            except MDNotImplementedError:
+                continue
+            else:
+                if result is not None:
+                    return result
+        return result
+
+
+class UndefinedPredicate(Predicate):
+    """
+    Predicate without handler.
+
+    Explanation
+    ===========
+
+    This predicate is generated by using ``Predicate`` directly for
+    construction. It does not have a handler, and evaluating this with
+    arguments is done by SAT solver.
+
+    """
+
+    def __new__(cls, name, handlers=None):
+        obj = super().__new__(cls, name, handlers)
+        # support old design
         obj.handlers = handlers or []
         return obj
+
+    @property
+    def handler(self):
+        return None
 
     def _hashable_content(self):
         return (self.name,)
@@ -170,21 +305,17 @@ class Predicate(Boolean):
         return AppliedPredicate(self, expr)
 
     def add_handler(self, handler):
+        # Will be deprecated
         self.handlers.append(handler)
 
     def remove_handler(self, handler):
+        # Will be deprecated
         self.handlers.remove(handler)
 
-    @cacheit
-    def sort_key(self, order=None):
-        return self.class_key(), (1, (self.name,)), S.One.sort_key(), S.One
-
-    def eval(self, expr, assumptions=True):
-        """
-        Evaluate self(expr) under the given assumptions.
-
-        This uses only direct resolution methods, not logical inference.
-        """
+    def eval(self, args, assumptions=True):
+        # Support for deprecated design
+        # When old design is removed, this will always return None
+        expr, = args
         res, _res = None, None
         mro = inspect.getmro(type(expr))
         for handler in self.handlers:
@@ -221,10 +352,8 @@ def assuming(*assumptions):
 
     >>> from sympy.assumptions import assuming, Q, ask
     >>> from sympy.abc import x, y
-
     >>> print(ask(Q.integer(x + y)))
     None
-
     >>> with assuming(Q.integer(x), Q.integer(y)):
     ...     print(ask(Q.integer(x + y)))
     True
