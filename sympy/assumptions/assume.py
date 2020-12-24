@@ -112,16 +112,6 @@ class AppliedPredicate(Boolean):
     is_Atom = True  # do not attempt to decompose this
 
     def __new__(cls, predicate, *args):
-        if predicate.arity != len(args):
-            raise ValueError(
-            "%s takes %d argument but %d were given." % (predicate,
-                                                        predicate.arity,
-                                                        len(args)))
-
-        if len(args) == 1:
-            arg = _sympify(args[0])
-            return super().__new__(cls, predicate, arg)
-
         args = Tuple(*[_sympify(a) for a in args])
         return super().__new__(cls, predicate, args)
 
@@ -140,12 +130,13 @@ class AppliedPredicate(Boolean):
         x + 1
 
         """
-        return self._args[1]
+        args = self.args
+        if len(args) == 1:
+            return args[0]
+        return args
 
     @property
     def args(self):
-        if self.func.arity == 1:
-            return self._args[1:]
         return self._args[1]
 
     @property
@@ -231,14 +222,13 @@ class Predicate(Boolean):
     is_Atom = True
     _handler = None
 
-    def __new__(cls, name, arity=1, handlers=None,):
+    def __new__(cls, name, handlers=None):
         if cls is Predicate:
-            return UndefinedPredicate(name, arity, handlers)
+            return UndefinedPredicate(name, handlers)
 
         if not isinstance(name, Str):
             name = Str(name)
-        arity = _sympify(arity)
-        obj = super().__new__(cls, name, arity)
+        obj = super().__new__(cls, name)
         return obj
 
     @classmethod
@@ -256,10 +246,6 @@ class Predicate(Boolean):
     @property
     def name(self):
         return self.args[0]
-
-    @property
-    def arity(self):
-        return self.args[1]
 
     def register(self, *types, **kwargs):
         return lambda func: self.handler.register(*types, **kwargs)(func)
@@ -299,9 +285,8 @@ class UndefinedPredicate(Predicate):
 
     """
 
-    def __new__(cls, name, arity=1, handlers=None):
-        arity = _sympify(arity)
-        obj = super().__new__(cls, name, arity, handlers)
+    def __new__(cls, name, handlers=None):
+        obj = super().__new__(cls, name, handlers)
         # support old design
         obj.handlers = handlers or []
         return obj
@@ -330,10 +315,6 @@ class UndefinedPredicate(Predicate):
     def eval(self, args, assumptions=True):
         # Support for deprecated design
         # When old design is removed, this will always return None
-        if self.arity != 1:
-            # Old design was designed for only unary predicate, so we don't
-            # need to support polyadic predicate here.
-            return None
         expr, = args
         res, _res = None, None
         mro = inspect.getmro(type(expr))
