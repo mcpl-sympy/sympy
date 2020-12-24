@@ -6,8 +6,7 @@ from sympy.core import sympify
 from sympy.core.cache import cacheit
 from sympy.core.relational import Relational
 from sympy.core.kind import BooleanKind
-from sympy.logic.boolalg import (to_cnf, And, Not, Or, Implies, Equivalent,
-                                 BooleanFunction, BooleanAtom)
+from sympy.logic.boolalg import (to_cnf, And, Not, Or, Implies, Equivalent)
 from sympy.logic.inference import satisfiable
 from sympy.utilities.decorator import memoize_property
 from sympy.assumptions.cnf import CNF, EncodedCNF, Literal
@@ -1397,8 +1396,10 @@ def ask(proposition, assumptions=True, context=global_assumptions):
 
     if isinstance(proposition, AppliedPredicate):
         key, expr = proposition.func, sympify(proposition.arg)
+        args = proposition.args
     else:
         key, expr = Q.is_true, sympify(proposition)
+        args = (expr,)
 
     assump = CNF.from_prop(assumptions)
     assump.extend(context)
@@ -1433,7 +1434,7 @@ def ask(proposition, assumptions=True, context=global_assumptions):
                     return False
 
     # direct resolution method, no logic
-    res = key(expr)._eval_ask(assumptions)
+    res = key(*args)._eval_ask(assumptions)
     if res is not None:
         return bool(res)
     # using satask (still costly)

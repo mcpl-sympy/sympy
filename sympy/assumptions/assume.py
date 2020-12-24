@@ -3,6 +3,7 @@
 from contextlib import contextmanager
 import inspect
 from sympy.core.cache import cacheit
+from sympy.core.containers import Tuple
 from sympy.core.singleton import S
 from sympy.core.symbol import Str
 from sympy.core.sympify import _sympify
@@ -110,9 +111,19 @@ class AppliedPredicate(Boolean):
 
     is_Atom = True  # do not attempt to decompose this
 
-    def __new__(cls, predicate, arg):
-        arg = _sympify(arg)
-        return Boolean.__new__(cls, predicate, arg)
+    def __new__(cls, predicate, *args):
+        if predicate.arity != len(args):
+            raise ValueError(
+            "%s takes %d argument but %d were given." % (predicate,
+                                                        predicate.arity,
+                                                        len(args)))
+
+        if len(args) == 1:
+            arg = _sympify(args[0])
+            return super().__new__(cls, predicate, arg)
+
+        args = Tuple(*[_sympify(a) for a in args])
+        return super().__new__(cls, predicate, args)
 
     @property
     def arg(self):
@@ -133,7 +144,9 @@ class AppliedPredicate(Boolean):
 
     @property
     def args(self):
-        return self._args[1:]
+        if self.func.arity == 1:
+            return self._args[1:]
+        return self._args[1]
 
     @property
     def func(self):
@@ -154,7 +167,7 @@ class AppliedPredicate(Boolean):
         return super().__hash__()
 
     def _eval_ask(self, assumptions):
-        return self.func.eval(self.arg, assumptions)
+        return self.func.eval(self.args, assumptions)
 
     @property
     def binary_symbols(self):
@@ -218,12 +231,14 @@ class Predicate(Boolean):
     is_Atom = True
     _handler = None
 
-    def __new__(cls, name, handlers=None):
+    def __new__(cls, name, arity=1, handlers=None,):
         if cls is Predicate:
-            return UndefinedPredicate(name, handlers)
+            return UndefinedPredicate(name, arity, handlers)
+
         if not isinstance(name, Str):
             name = Str(name)
-        obj = super().__new__(cls, name)
+        arity = _sympify(arity)
+        obj = super().__new__(cls, name, arity)
         return obj
 
     @classmethod
@@ -242,22 +257,27 @@ class Predicate(Boolean):
     def name(self):
         return self.args[0]
 
+    @property
+    def arity(self):
+        return self.args[1]
+
     def register(self, *types, **kwargs):
         return lambda func: self.handler.register(*types, **kwargs)(func)
 
-    def __call__(self, expr):
-        return AppliedPredicate(self, expr)
+    def __call__(self, *args):
+        return AppliedPredicate(self, *args)
 
-    def eval(self, expr, assumptions=True):
+    def eval(self, args, assumptions=True):
         """
-        Evaluate self(expr) under the given assumptions.
+        Evaluate self(*args) under the given assumptions.
 
         This uses only direct resolution methods, not logical inference.
         """
+        types = tuple(type(a) for a in args)
         result = None
-        for func in self.handler.dispatch_iter(type(expr)):
+        for func in self.handler.dispatch_iter(*types):
             try:
-                result = func(expr, assumptions)
+                result = func(*args, assumptions)
             except MDNotImplementedError:
                 continue
             else:
@@ -279,8 +299,9 @@ class UndefinedPredicate(Predicate):
 
     """
 
-    def __new__(cls, name, handlers=None):
-        obj = super().__new__(cls, name, handlers)
+    def __new__(cls, name, arity=1, handlers=None):
+        arity = _sympify(arity)
+        obj = super().__new__(cls, name, arity, handlers)
         # support old design
         obj.handlers = handlers or []
         return obj
@@ -306,9 +327,14 @@ class UndefinedPredicate(Predicate):
         # Will be deprecated
         self.handlers.remove(handler)
 
-    def eval(self, expr, assumptions=True):
+    def eval(self, args, assumptions=True):
         # Support for deprecated design
         # When old design is removed, this will always return None
+        if self.arity != 1:
+            # Old design was designed for only unary predicate, so we don't
+            # need to support polyadic predicate here.
+            return None
+        expr, = args
         res, _res = None, None
         mro = inspect.getmro(type(expr))
         for handler in self.handlers:
