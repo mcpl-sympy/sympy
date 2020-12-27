@@ -2,6 +2,7 @@
 
 from contextlib import contextmanager
 import inspect
+from sympy.core.assumptions import ManagedProperties
 from sympy.core.cache import cacheit
 from sympy.core.containers import Tuple
 from sympy.core.singleton import S
@@ -170,45 +171,94 @@ class AppliedPredicate(Boolean):
         return set()
 
 
-class Predicate(Boolean):
+class PredicateMeta(ManagedProperties):
     """
-    A predicate is a function that returns a boolean value [1].
+    Metaclass for ``Predicate``
+
+    If class attribute ``handler`` is not defined, assigns empty Dispatcher
+    to it.
+    """
+    def __new__(cls, clsname, bases, dct):
+        if "handler" not in dct:
+            name = ''.join(["Ask", clsname.capitalize(), "Handler"])
+            handler = Dispatcher(name, doc="Handler for key %s" % name)
+            dct["handler"] = handler
+        return super().__new__(cls, clsname, bases, dct)
+
+
+class Predicate(Boolean, metaclass=PredicateMeta):
+    """
+    Base class for mathematical predicates. It also serves as a
+    constructor for undefined predicate objects.
 
     Explanation
     ===========
 
+    Predicate is a function that returns a boolean value [1].
+
+    Predicate function is object, and it is instance of predicate class.
     When a predicate is applied to arguments, ``AppliedPredicate``
     instance is returned. This merely wraps the argument and remain
     unevaluated. To obtain the truth value of applied predicate, use the
     function ``ask``.
 
+    Evaluation of predicate is done by multiple dispatching. You can
+    register new handler to the predicate to support new types.
+
     Every predicate in SymPy can be accessed via the property of ``Q``.
     For example, ``Q.even`` returns the predicate which checks if the
     argument is even number.
 
-    Currently, only unary predicate is supported. Polyadic predicate
-    will be implemented in future.
+    To define a predicate which can be evaluated, you must subclass this
+    class, make an instance of it, and register it to ``Q``. After then,
+    dispatch the handler by argument types.
+
+    If you directly construct predicate using this class, you will get
+    ``UndefinedPredicate`` which cannot be dispatched. This is useful
+    when you are building boolean expressions which do not need to be
+    evaluated.
 
     Examples
     ========
 
-    Structure of predicate:
-
-    >>> from sympy import Q, Predicate
-    >>> isinstance(Q.prime, Predicate)
-    True
-    >>> Q.prime.name
-    Str('prime')
-
     Applying and evaluating to boolean value:
 
-    >>> from sympy import ask
-    >>> expr = Q.prime(7)
-    >>> ask(expr)
+    >>> from sympy import Q, ask
+    >>> from sympy.abc import x
+    >>> ask(Q.prime(7))
     True
 
+    You can define a new predicate by subclassing and dispatching. Here,
+    we define a predicate for sexy primes [2] as an example.
+
+    >>> from sympy import Predicate, Integer
+    >>> class SexyPrimePredicate(Predicate):
+    ...     name = "sexyprime"
+    >>> Q.sexyprime = SexyPrimePredicate()
+    >>> @Q.sexyprime.register(Integer, Integer)
+    ... def _(int1, int2, assumptions):
+    ...     args = sorted([int1, int2])
+    ...     if not all(ask(Q.prime(a), assumptions) for a in args):
+    ...         return False
+    ...     return args[1] - args[0] == 6
+    >>> ask(Q.sexyprime(5, 11))
+    True
+
+    Direct constructing returns ``UndefinedPredicate``, which can be
+    applied but cannot be dispatched.
+
+    >>> from sympy import Predicate, Integer
+    >>> Q.P = Predicate("P")
+    >>> type(Q.P)
+    <class 'sympy.assumptions.assume.UndefinedPredicate'>
+    >>> Q.P(1)
+    Q.P(1)
+    >>> Q.P.register(Integer)(lambda expr, assump: True)
+    Traceback (most recent call last):
+      ...
+    TypeError: <class 'sympy.assumptions.assume.UndefinedPredicate'> cannot be dispatched.
+
     The tautological predicate ``Q.is_true`` can be used to wrap other objects:
-    >>> from sympy.abc import x
     >>> Q.is_true(x > 1)
     Q.is_true(x > 1)
 
@@ -216,38 +266,27 @@ class Predicate(Boolean):
     ==========
 
     .. [1] https://en.wikipedia.org/wiki/Predicate_(mathematical_logic)
+    .. [2] https://en.wikipedia.org/wiki/Sexy_prime
 
     """
 
     is_Atom = True
-    _handler = None
 
-    def __new__(cls, name, handlers=None):
+    def __new__(cls, *args, **kwargs):
         if cls is Predicate:
-            return UndefinedPredicate(name, handlers)
-
-        if not isinstance(name, Str):
-            name = Str(name)
-        obj = super().__new__(cls, name)
+            return UndefinedPredicate(*args, **kwargs)
+        obj = super().__new__(cls, *args)
         return obj
-
-    @classmethod
-    def get_handler(cls):
-        if cls._handler is None:
-            name = ''.join(["Ask", cls.__name__.capitalize(), "Handler"])
-            handler = Dispatcher(name, doc="Handler for key %s" % name)
-            cls._handler = handler
-        return cls._handler
-
-    @property
-    def handler(self):
-        return self.get_handler()
 
     @property
     def name(self):
-        return self.args[0]
+        # May be overridden
+        return type(self).__name__
 
     def register(self, *types, **kwargs):
+        if self.handler is None:
+            # condition for UndefinedPredicate
+            raise TypeError("%s cannot be dispatched." % type(self))
         return lambda func: self.handler.register(*types, **kwargs)(func)
 
     def __call__(self, *args):
@@ -255,7 +294,7 @@ class Predicate(Boolean):
 
     def eval(self, args, assumptions=True):
         """
-        Evaluate self(*args) under the given assumptions.
+        Evaluate ``self(*args)`` under the given assumptions.
 
         This uses only direct resolution methods, not logical inference.
         """
@@ -283,13 +322,29 @@ class UndefinedPredicate(Predicate):
     construction. It does not have a handler, and evaluating this with
     arguments is done by SAT solver.
 
+    Examples
+    ========
+
+    >>> from sympy import Predicate, Q
+    >>> Q.P = Predicate('P')
+    >>> Q.P.func
+    <class 'sympy.assumptions.assume.UndefinedPredicate'>
+    >>> Q.P.name
+    Str('P')
+
     """
 
     def __new__(cls, name, handlers=None):
-        obj = super().__new__(cls, name, handlers)
-        # support old design
+        # "handlers" parameter supports old design
+        if not isinstance(name, Str):
+            name = Str(name)
+        obj = super(Boolean, cls).__new__(cls, name)
         obj.handlers = handlers or []
         return obj
+
+    @property
+    def name(self):
+        return self.args[0]
 
     @property
     def handler(self):

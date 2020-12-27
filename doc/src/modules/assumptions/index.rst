@@ -64,51 +64,6 @@ from module sympy.assumptions. ::
      True
 
 
-Design
-======
-
-Each time ``ask()`` is called, the appropriate handler for the current predicate is called.
-The handler is always an instance of ``sympy.multipledispatch.Dispatcher``.
-Class signature for its arguments is registered to the handler. For example, a handler for the key
-'positive' would look like this::
-
-    AskPositiveHandler = Dispatcher('positive')
-
-    @AskPositiveHandler.register(Mul)
-    def Mul_handler(expr, assumptions):
-        # check the arguments of expr and return True, False or None accordingly
-        ...
-
-    @AskPositiveHandler.register(Add)
-    def Add_handler(expr, assumptions):
-        ...
-
-The function ``Mul_handler()`` is called when ``expr`` is an instance of :class:`~.Mul()`, and ``Add_handler()``
-is called when ``expr`` is an instance of :class:`~.Add()`.
-
-
-Extensibility
-=============
-
-You can define new queries or support new types by subclassing ``Predicate`` and registering the instance
-to ``Q``. Supporting new types for the handler is done by dispatching.
-
-In the following example, we will create a new predicate which checks if the argument is mersenne number [1]_.
-
-.. parsed-literal::
-
-    >>> from sympy.assumptions import Predicate, Q
-    >>> class MersennePredicate(Predicate):
-    ...     """Return True if argument is (2**n)-1 pattern."""
-    >>> Q.mersenne = MersennePredicate("mersenne")
-    >>> @Q.mersenne.register(Integer)
-    ... def _(expr, assumptions):
-    ...     from sympy import log
-    ...     if ask(Q.integer(log(expr + 1, 2))):
-    ...             return True
-    >>> ask(Q.mersenne(7))
-    True
-
 Performance improvements
 ========================
 
