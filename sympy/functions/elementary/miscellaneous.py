@@ -150,7 +150,7 @@ def sqrt(arg, evaluate=None):
 
     from sympy.assumptions import AppliedPredicate
     if isinstance(arg, AppliedPredicate) and hasattr(arg, "apply_func"):
-        return arg.apply_func(cls, evaluate=evaluate)
+        return arg.apply_func(sqrt, evaluate=evaluate)
 
     # arg = sympify(arg) is handled by Pow
     return Pow(arg, S.Half, evaluate=evaluate)
@@ -213,7 +213,7 @@ def cbrt(arg, evaluate=None):
 
     from sympy.assumptions import AppliedPredicate
     if isinstance(arg, AppliedPredicate) and hasattr(arg, "apply_func"):
-        return arg.apply_func(cls, evaluate=evaluate)
+        return arg.apply_func(cbrt, evaluate=evaluate)
 
     return Pow(arg, Rational(1, 3), evaluate=evaluate)
 
@@ -315,7 +315,7 @@ def root(arg, n, k=0, evaluate=None):
 
     from sympy.assumptions import AppliedPredicate
     if isinstance(arg, AppliedPredicate) and hasattr(arg, "apply_func"):
-        return arg.apply_func(cls, n, k=0, evaluate=evaluate)
+        return arg.apply_func(root, n, k=0, evaluate=evaluate)
 
     n = sympify(n)
     if k:
@@ -371,7 +371,7 @@ def real_root(arg, n=None, evaluate=None):
 
     from sympy.assumptions import AppliedPredicate
     if isinstance(arg, AppliedPredicate) and hasattr(arg, "apply_func"):
-        return arg.apply_func(cls, n=n, evaluate=evaluate)
+        return arg.apply_func(real_root, n=n, evaluate=evaluate)
 
     from sympy.functions.elementary.complexes import Abs, im, sign
     from sympy.functions.elementary.piecewise import Piecewise
