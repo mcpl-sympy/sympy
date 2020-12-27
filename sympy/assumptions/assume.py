@@ -150,14 +150,6 @@ class AppliedPredicate(Boolean):
                 (2, (self.func.sort_key(), self.arg.sort_key())),
                 S.One.sort_key(), S.One)
 
-    def __eq__(self, other):
-        if type(other) is AppliedPredicate:
-            return self._args == other._args
-        return False
-
-    def __hash__(self):
-        return super().__hash__()
-
     def _eval_ask(self, assumptions):
         return self.func.eval(self.args, assumptions)
 
