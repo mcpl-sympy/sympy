@@ -1,3 +1,7 @@
+"""
+A module to implement logical predicates and assumption system.
+"""
+
 from .assume import (
     AppliedPredicate, Predicate, AssumptionsContext, assuming,
     global_assumptions

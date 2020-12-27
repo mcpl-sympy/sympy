@@ -188,22 +188,35 @@ class PredicateMeta(ManagedProperties):
 
 class Predicate(Boolean, metaclass=PredicateMeta):
     """
-    A predicate is a function that returns a boolean value [1].
+    Base class for mathematical predicates. It also serves as a
+    constructor for undefined predicate objects.
 
     Explanation
     ===========
 
+    Predicate is a function that returns a boolean value [1].
+
+    Predicate function is object, and it is instance of predicate class.
     When a predicate is applied to arguments, ``AppliedPredicate``
     instance is returned. This merely wraps the argument and remain
     unevaluated. To obtain the truth value of applied predicate, use the
     function ``ask``.
 
+    Evaluation of predicate is done by multiple dispatching. You can
+    register new handler to the predicate to support new types.
+
     Every predicate in SymPy can be accessed via the property of ``Q``.
     For example, ``Q.even`` returns the predicate which checks if the
     argument is even number.
 
-    Currently, only unary predicate is supported. Polyadic predicate
-    will be implemented in future.
+    To define a predicate which can be evaluated, you must subclass this
+    class, make an instance of it, and register it to ``Q``. After then,
+    dispatch the handler by argument types.
+
+    If you directly construct predicate using this class, you will get
+    ``UndefinedPredicate`` which cannot be dispatched. This is useful
+    when you are building boolean expressions which do not need to be
+    evaluated.
 
     Examples
     ========
@@ -211,12 +224,41 @@ class Predicate(Boolean, metaclass=PredicateMeta):
     Applying and evaluating to boolean value:
 
     >>> from sympy import Q, ask
-    >>> expr = Q.prime(7)
-    >>> ask(expr)
+    >>> from sympy.abc import x
+    >>> ask(Q.prime(7))
     True
 
+    You can define a new predicate by subclassing and dispatching. Here,
+    we define a predicate for sexy primes [2] as an example.
+
+    >>> from sympy import Predicate, Integer
+    >>> class SexyPrimePredicate(Predicate):
+    ...     name = "sexyprime"
+    >>> Q.sexyprime = SexyPrimePredicate()
+    >>> @Q.sexyprime.register(Integer, Integer)
+    ... def _(int1, int2, assumptions):
+    ...     args = sorted([int1, int2])
+    ...     if not all(ask(Q.prime(a), assumptions) for a in args):
+    ...         return False
+    ...     return args[1] - args[0] == 6
+    >>> ask(Q.sexyprime(5, 11))
+    True
+
+    Direct constructing returns ``UndefinedPredicate``, which can be
+    applied but cannot be dispatched.
+
+    >>> from sympy import Predicate, Integer
+    >>> Q.P = Predicate("P")
+    >>> type(Q.P)
+    <class 'sympy.assumptions.assume.UndefinedPredicate'>
+    >>> Q.P(1)
+    Q.P(1)
+    >>> Q.P.register(Integer)(lambda expr, assump: True)
+    Traceback (most recent call last):
+      ...
+    TypeError: <class 'sympy.assumptions.assume.UndefinedPredicate'> cannot be dispatched.
+
     The tautological predicate ``Q.is_true`` can be used to wrap other objects:
-    >>> from sympy.abc import x
     >>> Q.is_true(x > 1)
     Q.is_true(x > 1)
 
@@ -224,6 +266,7 @@ class Predicate(Boolean, metaclass=PredicateMeta):
     ==========
 
     .. [1] https://en.wikipedia.org/wiki/Predicate_(mathematical_logic)
+    .. [2] https://en.wikipedia.org/wiki/Sexy_prime
 
     """
 
@@ -241,6 +284,9 @@ class Predicate(Boolean, metaclass=PredicateMeta):
         return type(self).__name__
 
     def register(self, *types, **kwargs):
+        if self.handler is None:
+            # condition for UndefinedPredicate
+            raise TypeError("%s cannot be dispatched." % type(self))
         return lambda func: self.handler.register(*types, **kwargs)(func)
 
     def __call__(self, *args):
@@ -279,11 +325,11 @@ class UndefinedPredicate(Predicate):
     Examples
     ========
 
-    Structure of UndefinedPredicate:
-
-    >>> from sympy import Predicate
-    >>> pred = Predicate('P')
-    >>> pred.name
+    >>> from sympy import Predicate, Q
+    >>> Q.P = Predicate('P')
+    >>> Q.P.func
+    <class 'sympy.assumptions.assume.UndefinedPredicate'>
+    >>> Q.P.name
     Str('P')
 
     """
