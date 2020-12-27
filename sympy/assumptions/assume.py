@@ -2,6 +2,7 @@
 
 from contextlib import contextmanager
 import inspect
+from sympy.core.assumptions import ManagedProperties
 from sympy.core.cache import cacheit
 from sympy.core.containers import Tuple
 from sympy.core.singleton import S
@@ -170,7 +171,22 @@ class AppliedPredicate(Boolean):
         return set()
 
 
-class Predicate(Boolean):
+class PredicateMeta(ManagedProperties):
+    """
+    Metaclass for ``Predicate``
+
+    If class attribute ``handler`` is not defined, assigns empty Dispatcher
+    to it.
+    """
+    def __new__(cls, clsname, bases, dct):
+        if "handler" not in dct:
+            name = ''.join(["Ask", clsname.capitalize(), "Handler"])
+            handler = Dispatcher(name, doc="Handler for key %s" % name)
+            dct["handler"] = handler
+        return super().__new__(cls, clsname, bases, dct)
+
+
+class Predicate(Boolean, metaclass=PredicateMeta):
     """
     A predicate is a function that returns a boolean value [1].
 
@@ -212,7 +228,6 @@ class Predicate(Boolean):
     """
 
     is_Atom = True
-    _handler = None
 
     def __new__(cls, *args, **kwargs):
         if cls is Predicate:
@@ -224,18 +239,6 @@ class Predicate(Boolean):
     def name(self):
         # May be overridden
         return type(self).__name__
-
-    @classmethod
-    def get_handler(cls):
-        if cls._handler is None:
-            name = ''.join(["Ask", cls.__name__.capitalize(), "Handler"])
-            handler = Dispatcher(name, doc="Handler for key %s" % name)
-            cls._handler = handler
-        return cls._handler
-
-    @property
-    def handler(self):
-        return self.get_handler()
 
     def register(self, *types, **kwargs):
         return lambda func: self.handler.register(*types, **kwargs)(func)
