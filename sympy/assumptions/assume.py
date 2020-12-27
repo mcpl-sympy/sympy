@@ -192,17 +192,9 @@ class Predicate(Boolean):
     Examples
     ========
 
-    Structure of predicate:
-
-    >>> from sympy import Q, Predicate
-    >>> isinstance(Q.prime, Predicate)
-    True
-    >>> Q.prime.name
-    Str('prime')
-
     Applying and evaluating to boolean value:
 
-    >>> from sympy import ask
+    >>> from sympy import Q, ask
     >>> expr = Q.prime(7)
     >>> ask(expr)
     True
@@ -222,14 +214,16 @@ class Predicate(Boolean):
     is_Atom = True
     _handler = None
 
-    def __new__(cls, name, handlers=None):
+    def __new__(cls, *args, **kwargs):
         if cls is Predicate:
-            return UndefinedPredicate(name, handlers)
-
-        if not isinstance(name, Str):
-            name = Str(name)
-        obj = super().__new__(cls, name)
+            return UndefinedPredicate(*args, **kwargs)
+        obj = super().__new__(cls, *args)
         return obj
+
+    @property
+    def name(self):
+        # May be overridden
+        return type(self).__name__
 
     @classmethod
     def get_handler(cls):
@@ -242,10 +236,6 @@ class Predicate(Boolean):
     @property
     def handler(self):
         return self.get_handler()
-
-    @property
-    def name(self):
-        return self.args[0]
 
     def register(self, *types, **kwargs):
         return lambda func: self.handler.register(*types, **kwargs)(func)
@@ -283,13 +273,29 @@ class UndefinedPredicate(Predicate):
     construction. It does not have a handler, and evaluating this with
     arguments is done by SAT solver.
 
+    Examples
+    ========
+
+    Structure of UndefinedPredicate:
+
+    >>> from sympy import Predicate
+    >>> pred = Predicate('P')
+    >>> pred.name
+    Str('P')
+
     """
 
     def __new__(cls, name, handlers=None):
-        obj = super().__new__(cls, name, handlers)
-        # support old design
+        # "handlers" parameter supports old design
+        if not isinstance(name, Str):
+            name = Str(name)
+        obj = super(Boolean, cls).__new__(cls, name)
         obj.handlers = handlers or []
         return obj
+
+    @property
+    def name(self):
+        return self.args[0]
 
     @property
     def handler(self):

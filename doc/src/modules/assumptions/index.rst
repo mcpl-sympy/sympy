@@ -100,7 +100,8 @@ In the following example, we will create a new predicate which checks if the arg
     >>> from sympy.assumptions import Predicate, Q
     >>> class MersennePredicate(Predicate):
     ...     """Return True if argument is (2**n)-1 pattern."""
-    >>> Q.mersenne = MersennePredicate("mersenne")
+    ...     name = "mersenne"
+    >>> Q.mersenne = MersennePredicate()
     >>> @Q.mersenne.register(Integer)
     ... def _(expr, assumptions):
     ...     from sympy import log

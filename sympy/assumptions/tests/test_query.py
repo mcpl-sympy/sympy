@@ -2055,7 +2055,7 @@ def test_key_extensibility():
     # New handler system
     class MyPredicate(Predicate):
         pass
-    Q.my_key = MyPredicate("my_key")
+    Q.my_key = MyPredicate()
     @Q.my_key.register(Symbol)
     def _(expr, assumptions):
         return True
@@ -2286,7 +2286,7 @@ def test_custom_AskHandler():
     # New handler system
     class MersennePredicate(Predicate):
         pass
-    Q.mersenne = MersennePredicate("mersenne")
+    Q.mersenne = MersennePredicate()
     @Q.mersenne.register(Integer)
     def _(expr, assumptions):
         from sympy import log
@@ -2305,7 +2305,7 @@ def test_polyadic_predicate():
 
     class SexyPredicate(Predicate):
         pass
-    Q.sexyprime = SexyPredicate("sexyprime")
+    Q.sexyprime = SexyPredicate()
 
     @Q.sexyprime.register(Integer, Integer)
     def _(int1, int2, assumptions):
