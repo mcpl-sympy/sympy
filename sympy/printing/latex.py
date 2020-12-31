@@ -2670,6 +2670,11 @@ class LatexPrinter(Printer):
     def _print_mpq(self, expr):
         return str(expr)
 
+    def _print_AppliedBinaryRelation(self, expr):
+        rel, args = expr.func, expr.args
+        lhs, rhs = args
+        return "%s %s %s" % (self._print(lhs), rel.latexname, self._print(rhs))
+
     def emptyPrinter(self, expr):
         # default to just printing as monospace, like would normally be shown
         s = super().emptyPrinter(expr)

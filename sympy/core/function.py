@@ -453,6 +453,10 @@ class Function(Application, Expr):
         if cls is Function:
             return UndefinedFunction(*args, **options)
 
+        from sympy.relation.binrel import AppliedBinaryRelation
+        if isinstance(args[0], AppliedBinaryRelation):
+            return args[0].apply_func(cls, *args[1:], **options)
+
         n = len(args)
         if n not in cls.nargs:
             # XXX: exception message must be in exactly this format to

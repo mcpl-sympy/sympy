@@ -240,6 +240,8 @@ from .printing import (pager_print, pretty, pretty_print, pprint,
         print_tree, StrPrinter, sstr, sstrrepr, TableForm, dotprint,
         maple_code, print_maple_code)
 
+from .relation import (eqnsimp, solveeqn)
+
 from .testing import test, doctest
 
 # This module causes conflicts with other modules:
@@ -473,6 +475,9 @@ __all__ = [
 
     # sympy.algebras
     'Quaternion',
+
+    # sympy.relation
+    'eqnsimp', 'solveeqn',
 
     # sympy.printing
     'pager_print', 'pretty', 'pretty_print', 'pprint', 'pprint_use_unicode',
