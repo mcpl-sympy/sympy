@@ -148,16 +148,11 @@ def sqrt(arg, evaluate=None):
     .. [2] https://en.wikipedia.org/wiki/Principal_value
     """
 
-    from sympy.assumptions import AppliedPredicate
-    if isinstance(arg, AppliedPredicate) and hasattr(arg, "apply_func"):
-        return arg.apply_func(sqrt, evaluate=evaluate)
-
-    # arg = sympify(arg) is handled by Pow
-
     from sympy.relation.binrel import AppliedBinaryRelation
     if isinstance(arg, AppliedBinaryRelation):
         return arg.apply_func(sqrt, evaluate=evaluate)
 
+    # arg = sympify(arg) is handled by Pow
     return Pow(arg, S.Half, evaluate=evaluate)
 
 
