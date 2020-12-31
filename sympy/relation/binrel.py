@@ -148,15 +148,18 @@ class AppliedBinaryRelation(AppliedPredicate):
     # will be deleted after _op_priority is removed from SymPy
     _op_priority = 1000
 
+
+    ### make compatible with new assumptions design
+
     @property
     def lhs(self):
         """The left-hand side of the relation."""
-        return self.args[0]
+        return self.arguments[0]
 
     @property
     def rhs(self):
         """The right-hand side of the relation."""
-        return self.args[1]
+        return self.arguments[1]
 
     @property
     def reversed(self):
@@ -176,7 +179,7 @@ class AppliedBinaryRelation(AppliedPredicate):
         >>> _.reversed
         1 > x
         """
-        return self.func.reversed(self.rhs, self.lhs)
+        return self.function.reversed(self.rhs, self.lhs)
 
     @property
     def reversedsign(self):
@@ -196,9 +199,9 @@ class AppliedBinaryRelation(AppliedPredicate):
         >>> _.reversedsign
         -x > -1
         """
-        a, b = self.args
+        a, b = self.arguments
         if not (isinstance(a, BooleanAtom) or isinstance(b, BooleanAtom)):
-            return self.func.reversed(-self.lhs, -self.rhs)
+            return self.function.reversed(-self.lhs, -self.rhs)
         else:
             return self
 
@@ -225,7 +228,7 @@ class AppliedBinaryRelation(AppliedPredicate):
         >>> Q.lt(-y, -x).canonical
         x < y
         """
-        args = self.args
+        args = self.arguments
         r = self
         if r.rhs.is_number:
             if r.rhs.is_Number and r.lhs.is_Number and r.lhs > r.rhs:
@@ -263,11 +266,11 @@ class AppliedBinaryRelation(AppliedPredicate):
     # methods
 
     def as_Relational(self):
-        return self.func.as_Relational(*self.args)
+        return self.function.as_Relational(*self.arguments)
 
     def _eval_ask(self, assumptions):
         rel = self.simplify()
-        return rel.func.eval(rel.args, assumptions)
+        return rel.function.eval(rel.arguments, assumptions)
 
     def refine(self, assumptions=True):
         """
@@ -317,16 +320,16 @@ class AppliedBinaryRelation(AppliedPredicate):
         )
         options.update(kwargs)
 
-        lhs, rhs = self.args
+        lhs, rhs = self.arguments
 
         if equation:
-            return eqnsimp(self.func, lhs, rhs, **options)
+            return eqnsimp(self.function, lhs, rhs, **options)
 
         if termname in ("all", "lhs"):
             lhs = self.lhs.simplify(**options)
         if termname in ("all", "rhs"):
             rhs = self.rhs.simplify(**options)
-        return self.func(lhs, rhs)
+        return self.function(lhs, rhs)
 
     def solve(self, symbol=None, domain=S.Complexes):
         """
@@ -404,12 +407,12 @@ class AppliedBinaryRelation(AppliedPredicate):
         kwargs : keyword arguments passed to function
 
         """
-        lhs, rhs = self.args
+        lhs, rhs = self.arguments
         if termname in ("all", "lhs"):
             lhs = func(self.lhs, *args, **kwargs)
         if termname in ("all", "rhs"):
             rhs = func(self.rhs, *args, **kwargs)
-        return self.func(lhs, rhs)
+        return self.function(lhs, rhs)
 
     def apply_attr(self, name, termname="all"):
         """
@@ -427,12 +430,12 @@ class AppliedBinaryRelation(AppliedPredicate):
             "all".
 
         """
-        lhs, rhs = self.args
+        lhs, rhs = self.arguments
         if termname in ("all", "lhs"):
             lhs = getattr(self.lhs, name)
         if termname in ("all", "rhs"):
             rhs = getattr(self.rhs, name)
-        return self.func(lhs, rhs)
+        return self.function(lhs, rhs)
 
     def apply_method(self, name, *args, termname="all", **kwargs):
         """
@@ -454,12 +457,12 @@ class AppliedBinaryRelation(AppliedPredicate):
         kwargs : keyword arguments passed to method
 
         """
-        lhs, rhs = self.args
+        lhs, rhs = self.arguments
         if termname in ("all", "lhs"):
             lhs = getattr(self.lhs, name)(*args, **kwargs)
         if termname in ("all", "rhs"):
             rhs = getattr(self.rhs, name)(*args, **kwargs)
-        return self.func(lhs, rhs)
+        return self.function(lhs, rhs)
 
     def __getattr__(self, name):
         try:
@@ -493,12 +496,12 @@ class AppliedBinaryRelation(AppliedPredicate):
         kwargs : keyword arguments passed to ``rewrite`` method
 
         """
-        lhs, rhs = self.args
+        lhs, rhs = self.arguments
         if termname in ("all", "lhs"):
             lhs = self.lhs.rewrite(*args, **kwargs)
         if termname in ("all", "rhs"):
             rhs = self.rhs.rewrite(*args, **kwargs)
-        return self.func(lhs, rhs)
+        return self.function(lhs, rhs)
 
 
 from .relop import relop_add, relop_mul, relop_pow

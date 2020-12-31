@@ -2715,10 +2715,10 @@ class PrettyPrinter(Printer):
         return self._print(s.name)
 
     def _print_AppliedBinaryRelation(self, expr):
-        rel, args = expr.func, expr.args
+        rel, args = expr.function, expr.arguments
         lhs, rhs = args
 
-        op = prettyForm(rel.strname)
+        op = prettyForm(rel.str_name)
         l = self._print(lhs)
         r = self._print(rhs)
         pform = prettyForm(*stringPict.next(l, ' ', op, ' ', r))

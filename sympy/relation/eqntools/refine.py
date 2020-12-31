@@ -23,14 +23,14 @@ def refine_equation(eqn, assumptions=True):
         eqn = new_eqn
         new_eqn = _try_refine(eqn, assumptions)
         lhs, rhs = refine(new_eqn.lhs, assumptions), refine(new_eqn.rhs, assumptions)
-        new_eqn = new_eqn.func(lhs, rhs)
+        new_eqn = new_eqn.function(lhs, rhs)
 
     return new_eqn
 
 
 def _try_refine(eqn, assumptions):
     try:
-        result = _refine_equation(eqn.func, eqn.lhs, eqn.rhs, assumptions=assumptions)
+        result = _refine_equation(eqn.function, eqn.lhs, eqn.rhs, assumptions=assumptions)
     except NotImplementedError:
         result = eqn
     return result

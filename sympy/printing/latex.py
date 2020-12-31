@@ -2671,9 +2671,9 @@ class LatexPrinter(Printer):
         return str(expr)
 
     def _print_AppliedBinaryRelation(self, expr):
-        rel, args = expr.func, expr.args
+        rel, args = expr.function, expr.arguments
         lhs, rhs = args
-        return "%s %s %s" % (self._print(lhs), rel.latexname, self._print(rhs))
+        return "%s %s %s" % (self._print(lhs), rel.latex_name, self._print(rhs))
 
     def emptyPrinter(self, expr):
         # default to just printing as monospace, like would normally be shown

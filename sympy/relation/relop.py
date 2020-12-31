@@ -13,7 +13,7 @@ class RelOpDispatcher:
     with different relations.
 
     Multipledispatcher registers the function over the class of arguments.
-    Since ``AppliedBinaryRelation`` is best classified by its ``.func``, not
+    Since ``AppliedBinaryRelation`` is best classified by its ``.function``, not
     class, we use this dispatcher to define the operation between these.
 
     Parameters
@@ -58,11 +58,11 @@ class RelOpDispatcher:
 
     def __call__(self, arg1, arg2, **kwargs):
         if isinstance(arg1, AppliedBinaryRelation):
-            typ1 = type(arg1.func)
+            typ1 = type(arg1.function)
         else:
             typ1 = type(arg1)
         if isinstance(arg2, AppliedBinaryRelation):
-            typ2 = type(arg2.func)
+            typ2 = type(arg2.function)
         else:
             typ2 = type(arg2)
         func = self._dispatcher.dispatch(typ1, typ2)

@@ -39,11 +39,11 @@ def _(rel, lhs, rhs, **kwargs):
                 if m.is_negative:
                     # Dividing with a negative number, so change order of arguments
                     # canonical will put the symbol back on the lhs later
-                    r = r.func(-b / m, x)
+                    r = r.function(-b / m, x)
                 else:
-                    r = r.func(x, -b / m)
+                    r = r.function(x, -b / m)
             else:
-                r = r.func(b, S.Zero)
+                r = r.function(b, S.Zero)
         except ValueError:
             # maybe not a linear function, try polynomial
             try:
@@ -53,7 +53,7 @@ def _(rel, lhs, rhs, **kwargs):
                 c[-1] = 0
                 scale = gcd(c)
                 c = [ctmp / scale for ctmp in c]
-                r = r.func(Poly.from_list(c, x).as_expr(), -constant / scale)
+                r = r.function(Poly.from_list(c, x).as_expr(), -constant / scale)
             except PolynomialError:
                 pass
     elif len(free) >= 2:
@@ -70,16 +70,16 @@ def _(rel, lhs, rhs, **kwargs):
                 if constant != 0:
                     # lhs: expression, rhs: constant
                     newexpr = Add(*[i * j for i, j in nzm])
-                    r = r.func(newexpr, -constant / scale)
+                    r = r.function(newexpr, -constant / scale)
                 else:
                     # keep first term on lhs
                     lhsterm = nzm[0][0] * nzm[0][1]
                     del nzm[0]
                     newexpr = Add(*[i * j for i, j in nzm])
-                    r = r.func(lhsterm, -newexpr)
+                    r = r.function(lhsterm, -newexpr)
 
             else:
-                r = r.func(constant, S.Zero)
+                r = r.function(constant, S.Zero)
         except ValueError:
             pass
     # Did we get a simplified result?
@@ -98,7 +98,7 @@ def _(rel, lhs, rhs, **kwargs):
     # standard simplify
     e = eqnsimp.dispatch(BinaryRelation)(rel, lhs, rhs, **kwargs)
 
-    if not isinstance(e.func, Equal):
+    if not isinstance(e.function, Equal):
         return e
     if not isinstance(e.lhs, Expr) or not isinstance(e.rhs, Expr):
         return e
@@ -109,9 +109,9 @@ def _(rel, lhs, rhs, **kwargs):
             m, b = linear_coeffs(
                 _convert_to_Add(e, evaluate=False), x)
             if m.is_zero is False:
-                enew = e.func(x, -b / m)
+                enew = e.function(x, -b / m)
             else:
-                enew = e.func(m * x, -b)
+                enew = e.function(m * x, -b)
             measure = kwargs['measure']
             if measure(enew) <= kwargs['ratio'] * measure(e):
                 e = enew

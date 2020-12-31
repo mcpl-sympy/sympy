@@ -9,7 +9,7 @@ from sympy.functions import arg
 from sympy.logic.boolalg import Boolean, BooleanAtom
 from sympy.simplify.simplify import clear_coefficients
 from sympy.utilities.iterables import sift
-from .binrel import BinaryRelation
+from .binrel import BinaryRelation, AppliedBinaryRelation
 from .relop import relop_add, relop_mul, relop_pow
 
 
@@ -23,7 +23,7 @@ class Equal(BinaryRelation):
 
     __name__ = "Equal" # compatibility for count_ops
     name = 'eq'
-    strname = latexname = "="
+    str_name = latex_name = "="
 
     @property
     def handler(self):
@@ -139,7 +139,7 @@ def eq_add(rel1, rel2):
 @relop_add.register(Equal, Expr)
 @relop_add.register(Expr, Equal)
 def eq_expr_add(arg1, arg2):
-    if isinstance(arg1.func, Equal):
+    if isinstance(arg1, AppliedBinaryRelation):
         lhs = arg1.lhs + arg2
         rhs = arg1.rhs + arg2
     else:
@@ -156,7 +156,7 @@ def eq_mul(rel1, rel2):
 @relop_mul.register(Equal, Expr)
 @relop_mul.register(Expr, Equal)
 def eq_expr_mul(arg1, arg2):
-    if isinstance(arg1.func, Equal):
+    if isinstance(arg1, AppliedBinaryRelation):
         lhs = arg1.lhs*arg2
         rhs = arg1.rhs*arg2
     else:
@@ -173,7 +173,7 @@ def eq_pow(rel1, rel2):
 @relop_pow.register(Equal, Expr)
 @relop_pow.register(Expr, Equal)
 def eq_expr_pow(arg1, arg2):
-    if isinstance(arg1.func, Equal):
+    if isinstance(arg1, AppliedBinaryRelation):
         lhs = arg1.lhs**arg2
         rhs = arg1.rhs**arg2
     else:

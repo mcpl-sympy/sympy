@@ -5,7 +5,7 @@ from sympy.assumptions import ask, Q
 from sympy.core import Expr
 from sympy.core.relational import (GreaterThan, StrictGreaterThan, LessThan,
     StrictLessThan)
-from .binrel import BinaryRelation
+from .binrel import BinaryRelation, AppliedBinaryRelation
 from .equality import Equal
 from .relop import relop_add, relop_mul
 
@@ -20,7 +20,7 @@ class GreaterThan(InEqual):
 
     __name__ = "GreaterThan" # compatibility for count_ops
     name = 'gt'
-    strname = latexname = ">"
+    str_name = latex_name = ">"
 
     @property
     def reversed(self):
@@ -41,8 +41,8 @@ class GreaterEq(GreaterThan):
 
     __name__ = "GreaterEq" # compatibility for count_ops
     name = 'ge'
-    strname = ">="
-    latexname = r"\geq"
+    str_name = ">="
+    latex_name = r"\geq"
 
     @property
     def reversed(self):
@@ -63,7 +63,7 @@ class LessThan(InEqual):
 
     __name__ = "LessThan" # compatibility for count_ops
     name = 'lt'
-    strname = latexname = "<"
+    str_name = latex_name = "<"
 
     @property
     def reversed(self):
@@ -84,8 +84,8 @@ class LessEq(LessThan):
 
     __name__ = "LessEq" # compatibility for count_ops
     name = 'le'
-    strname = "<="
-    latexname = r"\leq"
+    str_name = "<="
+    latex_name = r"\leq"
 
     @property
     def reversed(self):
@@ -111,7 +111,7 @@ def gt_add(rel1, rel2):
 @relop_add.register(GreaterThan, Expr)
 @relop_add.register(Expr, GreaterThan)
 def gt_expr_add(arg1, arg2):
-    if isinstance(arg1.func, GreaterThan):
+    if isinstance(arg1, AppliedBinaryRelation):
         lhs = arg1.lhs + arg2
         rhs = arg1.rhs + arg2
     else:
@@ -130,7 +130,7 @@ def ge_add(rel1, rel2):
 @relop_add.register(GreaterEq, Expr)
 @relop_add.register(Expr, GreaterEq)
 def ge_expr_add(arg1, arg2):
-    if isinstance(arg1.func, GreaterEq):
+    if isinstance(arg1, AppliedBinaryRelation):
         lhs = arg1.lhs + arg2
         rhs = arg1.rhs + arg2
     else:
@@ -149,7 +149,7 @@ def lt_add(rel1, rel2):
 @relop_add.register(LessThan, Expr)
 @relop_add.register(Expr, LessThan)
 def lt_expr_add(arg1, arg2):
-    if isinstance(arg1.func, LessThan):
+    if isinstance(arg1, AppliedBinaryRelation):
         lhs = arg1.lhs + arg2
         rhs = arg1.rhs + arg2
     else:
@@ -168,7 +168,7 @@ def le_add(rel1, rel2):
 @relop_add.register(LessEq, Expr)
 @relop_add.register(Expr, LessEq)
 def le_expr_add(arg1, arg2):
-    if isinstance(arg1.func, LessEq):
+    if isinstance(arg1, AppliedBinaryRelation):
         lhs = arg1.lhs + arg2
         rhs = arg1.rhs + arg2
     else:
@@ -184,7 +184,7 @@ def add_undetermined(rel1, rel2):
 @relop_mul.register(InEqual, Expr)
 @relop_mul.register(Expr, InEqual)
 def ineq_expr_mul(arg1, arg2):
-    if isinstance(arg1.func, InEqual):
+    if isinstance(arg1, AppliedBinaryRelation):
         ineq, expr = arg1, arg2
     else:
         expr, ineq = arg1, arg2
@@ -200,8 +200,8 @@ def ineq_expr_mul(arg1, arg2):
     lhs = ineq.lhs*expr
     rhs = ineq.rhs*expr
     if is_pos:
-        return ineq.func(lhs, rhs)
+        return ineq.function(lhs, rhs)
     elif is_neg:
-        return ineq.func.reversed(lhs, rhs)
+        return ineq.function.reversed(lhs, rhs)
     else:
         return Q.eq(lhs, rhs)
