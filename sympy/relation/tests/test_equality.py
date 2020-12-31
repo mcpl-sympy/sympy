@@ -118,6 +118,8 @@ def test_ask():
 
     assert ask(Q.eq(log(cos(2)**2 + sin(2)**2), 0)) is True
 
+    assert ask(Q.eq(x, 1), Q.negative(x)) is False
+
 def test_reversed():
     assert Q.eq(x, y).reversed == Q.eq(y, x)
 

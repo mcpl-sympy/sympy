@@ -37,7 +37,7 @@ class BinaryRelation(Predicate):
         if ret is not None:
             return ret
 
-        # definitive comparison with 0
+        # definitive comparison with 0 if lhs-rhs is number
         try:
             dif = lhs - rhs
             v = None

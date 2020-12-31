@@ -1,5 +1,6 @@
 from sympy.assumptions import ask, Q
 from sympy.core import Basic, Expr, Symbol, Tuple
+from sympy.core.kind import NumberKind
 from sympy.core.function import AppliedUndef
 from sympy.core.logic import fuzzy_bool, fuzzy_and
 from sympy.logic.boolalg import BooleanAtom
@@ -38,3 +39,15 @@ def _(lhs, rhs, assumptions):
 @EqualHandler.register(BooleanAtom, BooleanAtom)
 def _(lhs, rhs, assumptions):
     return lhs is rhs
+
+@EqualHandler.register(Expr, Expr)
+def _(lhs, rhs, assumptions):
+    try:
+        diff = lhs - rhs
+        if diff.kind is NumberKind:
+            ret = ask(Q.zero(diff), assumptions)
+            if ret is not None:
+                return ret
+    except TypeError:
+        pass
+    return None

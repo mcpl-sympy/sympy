@@ -179,6 +179,10 @@ class Boolean(Basic):
                            if i.is_Boolean or i.is_Symbol
                            or isinstance(i, (Eq, Ne))])
 
+    def refine(self, assumptions):
+        from sympy.assumptions import refine
+        return refine(self, assumptions)
+
 
 class BooleanAtom(Boolean):
     """
@@ -645,6 +649,18 @@ class BooleanFunction(Application, Boolean):
         rv = rv.func(*([_canonical(i) for i in ordered(Rel)]
                      + nonRel + nonRealRel))
         return rv
+
+    def _eval_refine(self, assumptions):
+        from sympy.assumptions import ask, refine
+        args = []
+        for a in self.args:
+            refined_a = refine(a, assumptions)
+            evaluated_a = ask(refined_a, assumptions)
+            if evaluated_a is None:
+                args.append(refined_a)
+            else:
+                args.append(evaluated_a)
+        return self.func(*args)
 
 
 class And(LatticeOp, BooleanFunction):

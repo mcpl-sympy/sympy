@@ -50,9 +50,7 @@ class Equal(BinaryRelation):
         # Go through the equality logic.
         # If expressions have the same structure, they must be equal.
         lhs, rhs = args
-        if all(isinstance(i, BooleanAtom) for i in (rhs, lhs)):
-            return False  # True != False
-        elif not (lhs.is_Symbol or rhs.is_Symbol) and (
+        if not (lhs.is_Symbol or rhs.is_Symbol) and (
             isinstance(lhs, Boolean) !=
             isinstance(rhs, Boolean)):
             return False  # only Booleans can equal Booleans
