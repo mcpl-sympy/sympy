@@ -147,6 +147,11 @@ def sqrt(arg, evaluate=None):
     .. [1] https://en.wikipedia.org/wiki/Square_root
     .. [2] https://en.wikipedia.org/wiki/Principal_value
     """
+
+    from sympy.assumptions import AppliedPredicate
+    if isinstance(arg, AppliedPredicate) and hasattr(arg, "apply_func"):
+        return arg.apply_func(sqrt, evaluate=evaluate)
+
     # arg = sympify(arg) is handled by Pow
 
     from sympy.relation.binrel import AppliedBinaryRelation
