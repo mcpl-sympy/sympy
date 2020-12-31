@@ -19,12 +19,15 @@ References
  .. [1] https://en.wikipedia.org/wiki/Binary_relation
 """
 
-__all__ = ['Equal', 'GreaterThan', 'GreaterEq', 'LessThan', 'LessEq',
-    'eqnsimp', 'solveeqn']
+__all__ = ['BinaryRelation', 'AppliedBinaryRelation',
+    'Equal',
+    'GreaterThan', 'GreaterEq', 'LessThan', 'LessEq',
+    'refine_equation', 'eqnsimp', 'solveeqn']
 
+from .binrel import BinaryRelation, AppliedBinaryRelation
 from .equality import Equal
 from .inequality import GreaterThan, GreaterEq, LessThan, LessEq
-from .eqntools import eqnsimp, solveeqn
+from .eqntools import refine_equation, eqnsimp, solveeqn
 
 from sympy.assumptions import Q
 Q.eq = Equal()
