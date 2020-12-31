@@ -10,7 +10,7 @@ from .cache import cacheit
 from .logic import fuzzy_not, _fuzzy_group
 from .expr import Expr
 from .parameters import global_parameters
-
+from .kind import KindDispatcher
 
 
 # internal marker to indicate:
@@ -86,12 +86,60 @@ def _unevaluated_Mul(*args):
 
 
 class Mul(Expr, AssocOp):
+    """
+    Multiplication operation for algebraic group.
 
+    This class mainly deals with the multiplication in the field of complex numbers.
+    Any abstract algebraic field can be dealt as well, but it is encouraged to
+    define specific class such as ``MatMul`` or ``VectorMul`` for other fields.
+    This class also serves as base class for these classes.
+
+    Another use of ``Mul()`` is to behave as template for abstract multiplication so
+    that its arguments can be substituted to return different class. Refer to
+    examples section for this.
+
+    Since multiplication can be vector space operation, arguments may have the different
+    kind. Kind of the resulting object is automatically inferred.
+
+    Examples
+    ========
+
+    >>> from sympy import Mul
+    >>> from sympy.abc import x, y
+    >>> Mul(x, 1)
+    x
+    >>> Mul(x, x)
+    x**2
+
+    If ``evaluate=False`` is passed, result is not evaluated.
+
+    >>> Mul(1, 2, evaluate=False)
+    1*2
+    >>> Mul(x, x, evaluate=False)
+    x*x
+
+    ``Mul()`` also serves as a template for other classes.
+
+    >>> from sympy import MatrixSymbol
+    >>> A = MatrixSymbol('A', 2,2)
+    >>> expr = Mul(x,y).subs({y:A})
+    >>> expr
+    x*A
+    >>> expr.func
+    <class 'sympy.matrices.expressions.matmul.MatMul'>
+
+    """
     __slots__ = ()
 
     is_Mul = True
 
     _args_type = Expr
+    _kind_dispatcher = KindDispatcher("Mul_kind_dispatcher", commutative=True)
+
+    @property
+    def kind(self):
+        arg_kinds = (a.kind for a in self.args)
+        return self._kind_dispatcher(*arg_kinds)
 
     def __neg__(self):
         c, args = self.as_coeff_mul()
@@ -1926,6 +1974,7 @@ class Mul(Expr, AssocOp):
         return tuple(self.as_ordered_factors())
 
 mul = AssocOpDispatcher('mul')
+
 
 def prod(a, start=1):
     """Return product of elements of a. Start with int 1 so if only
