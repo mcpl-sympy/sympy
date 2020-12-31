@@ -2068,18 +2068,6 @@ def test_key_extensibility():
         del Q.my_key
     raises(AttributeError, lambda: ask(Q.my_key(x)))
 
-    # New handler system
-    class MyPredicate(Predicate):
-        pass
-    Q.my_key = MyPredicate()
-    @Q.my_key.register(Symbol)
-    def _(expr, assumptions):
-        return True
-    assert ask(Q.my_key(x)) is True
-    assert ask(Q.my_key(x+1)) is None
-    del Q.my_key
-    raises(AttributeError, lambda: ask(Q.my_key(x)))
-
 
 def test_type_extensibility():
     """test that new types can be added to the ask system at runtime
