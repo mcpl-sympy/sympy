@@ -3,7 +3,7 @@ Module for mathematical equality.
 """
 from sympy.assumptions import ask, Q
 from sympy.core import Add, Equality, Expr, S
-from sympy.core.logic import fuzzy_and, fuzzy_bool, fuzzy_xor
+from sympy.core.logic import fuzzy_and, fuzzy_bool, fuzzy_xor, fuzzy_not
 from sympy.core.relational import _n2
 from sympy.functions import arg
 from sympy.logic.boolalg import Boolean, BooleanAtom

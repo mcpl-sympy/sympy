@@ -2,8 +2,10 @@
 Module to allow operation between binary relations by multipledispatch.
 This is useful for symbolic manipulation of equation.
 """
-from sympy import Q
-from sympy.multipledispatch import Dispatcher
+from collections import defaultdict
+
+from sympy.multipledispatch.dispatcher import (Dispatcher, str_signature,
+    RaiseNotImplementedError)
 from .binrel import AppliedBinaryRelation
 
 

@@ -3,7 +3,7 @@ A module to implement mathematical binary relations [1] as predicate.
 
 This module expands assumption module to provide predicates for
 binary relations. Relation can be symbolically manipulated, evaluated
-to boolean, and assumed. Also, boolean functions for advanced equation 
+to boolean, and assumed. Also, boolean functions for advanced equation
 structures such as simultaneous equations are implemented.
 
 Previously, binary relation was dealt by ``core/relational`` module. It
@@ -18,6 +18,9 @@ References
 
  .. [1] https://en.wikipedia.org/wiki/Binary_relation
 """
+
+__all__ = ['Equal', 'GreaterThan', 'GreaterEq', 'LessThan', 'LessEq',
+    'eqnsimp', 'solveeqn']
 
 from .equality import Equal
 from .inequality import GreaterThan, GreaterEq, LessThan, LessEq

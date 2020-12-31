@@ -1,4 +1,4 @@
-from sympy.assumptions import Q
+from sympy.assumptions import ask, Q
 from sympy.core import Basic, Expr, Symbol, Tuple
 from sympy.core.function import AppliedUndef
 from sympy.core.logic import fuzzy_bool, fuzzy_and

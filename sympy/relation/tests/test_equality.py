@@ -1,7 +1,7 @@
 from itertools import combinations
 
 from sympy import (ask, cos, exp, FiniteSet, Float, Function, I, log, oo,
-    pi, Q, Rational, S, simplify, sin, sqrt, symbols)
+    pi, Q, Rational, S, sin, sqrt, symbols)
 from sympy.simplify import trigsimp
 from sympy.printing import sstr, pretty, latex
 
@@ -94,6 +94,15 @@ def test_simplify():
     eq = Q.eq(y, (x+x**2)/(x*sin(y)**2+x*cos(y)**2))
     assert eq.simplify() == Q.eq(x - y, -1)
 
+    assert Q.eq(y, x).simplify() == Q.eq(x, y)
+    assert Q.eq(x - 1, 0).simplify() == Q.eq(x, 1)
+    assert Q.eq(x - 1, x).simplify() == Q.eq(0, 1)
+    assert Q.eq(2*x - 1, x).simplify() == Q.eq(x, 1)
+    assert Q.eq(2*x, 4).simplify() == Q.eq(x, 2)
+    z = cos(1)**2 + sin(1)**2 - 1  # z.is_zero is None
+    assert Q.eq(z*x, 0).simplify() == Q.eq(0, 0)
+    assert Q.eq(x*(y + 1) - x*y - x + 1, x).simplify() == Q.eq(x, 1)
+
 def test_doit():
     assert Q.eq(x, 0).doit() == Q.eq(x, 0)
     assert Q.eq(1, 1).doit() == Q.eq(1, 1)
@@ -108,16 +117,6 @@ def test_ask():
     assert ask(Q.eq(x, x)) is True
 
     assert ask(Q.eq(log(cos(2)**2 + sin(2)**2), 0)) is True
-
-def test_simplify():
-    assert Q.eq(y, x).simplify() == Q.eq(x, y)
-    assert Q.eq(x - 1, 0).simplify() == Q.eq(x, 1)
-    assert Q.eq(x - 1, x).simplify() == Q.eq(0, 1)
-    assert Q.eq(2*x - 1, x).simplify() == Q.eq(x, 1)
-    assert Q.eq(2*x, 4).simplify() == Q.eq(x, 2)
-    z = cos(1)**2 + sin(1)**2 - 1  # z.is_zero is None
-    assert Q.eq(z*x, 0).simplify() == Q.eq(0, 0)
-    assert Q.eq(x*(y + 1) - x*y - x + 1, x).simplify() == Q.eq(x, 1)
 
 def test_reversed():
     assert Q.eq(x, y).reversed == Q.eq(y, x)

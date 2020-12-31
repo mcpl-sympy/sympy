@@ -3,8 +3,6 @@ Module for mathematical inequality.
 """
 from sympy.assumptions import ask, Q
 from sympy.core import Expr
-from sympy.core.relational import (GreaterThan, StrictGreaterThan, LessThan,
-    StrictLessThan)
 from .binrel import BinaryRelation, AppliedBinaryRelation
 from .equality import Equal
 from .relop import relop_add, relop_mul
@@ -28,6 +26,7 @@ class GreaterThan(InEqual):
 
     @property
     def as_Relational(self):
+        from sympy.core.relational import StrictGreaterThan
         return StrictGreaterThan
 
     def _eval_relation(self, lhs, rhs):
@@ -50,6 +49,7 @@ class GreaterEq(GreaterThan):
 
     @property
     def as_Relational(self):
+        from sympy.core.relational import GreaterThan
         return GreaterThan
 
     def _eval_relation(self, lhs, rhs):
@@ -71,6 +71,7 @@ class LessThan(InEqual):
 
     @property
     def as_Relational(self):
+        from sympy.core.relational import StrictLessThan
         return StrictLessThan
 
     def _eval_relation(self, lhs, rhs):
@@ -93,6 +94,7 @@ class LessEq(LessThan):
 
     @property
     def as_Relational(self):
+        from sympy.core.relational import LessThan
         return LessThan
 
     def _eval_relation(self, lhs, rhs):

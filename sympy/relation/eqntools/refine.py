@@ -37,7 +37,7 @@ def _try_refine(eqn, assumptions):
 
 
 @dispatch(BinaryRelation, Add, Add)
-def _refine_equation(rel, lhs, rhs, assumptions=True):
+def _refine_equation(rel, lhs, rhs, assumptions=True): # noqa:F811
     lhs_coeff, lhs_terms = lhs.as_coeff_add()
     _, rhs_terms = rhs.as_coeff_add()
     commonterms = _commonelem_commut(lhs_terms, rhs_terms)
@@ -53,7 +53,7 @@ def _refine_equation(rel, lhs, rhs, assumptions=True):
 
 
 @dispatch(Equal, Mul, Mul)
-def _refine_equation(rel, lhs, rhs, assumptions=True):
+def _refine_equation(rel, lhs, rhs, assumptions=True): # noqa:F811
     lhs_coeff, lhs_terms = lhs.as_coeff_mul()
     _, rhs_terms = rhs.as_coeff_mul()
     commonterms = _commonelem_commut(lhs_terms, rhs_terms)
@@ -69,7 +69,7 @@ def _refine_equation(rel, lhs, rhs, assumptions=True):
 
 
 @dispatch(InEqual, Mul, Mul)
-def _refine_equation(rel, lhs, rhs, assumptions=True):
+def _refine_equation(rel, lhs, rhs, assumptions=True): # noqa:F811
     lhs_coeff, lhs_terms = lhs.as_coeff_mul()
     _, rhs_terms = rhs.as_coeff_mul()
     commonterms = _commonelem_commut(lhs_terms, rhs_terms)
@@ -89,7 +89,7 @@ def _refine_equation(rel, lhs, rhs, assumptions=True):
 
 
 @dispatch(BinaryRelation, Pow, Pow)
-def _refine_equation(rel, lhs, rhs, assumptions=True):
+def _refine_equation(rel, lhs, rhs, assumptions=True): # noqa:F811
     lhs_b, lhs_e = lhs.as_base_exp()
     rhs_b, rhs_e = rhs.as_base_exp()
 
@@ -103,7 +103,7 @@ def _refine_equation(rel, lhs, rhs, assumptions=True):
 
 
 @dispatch(BinaryRelation, log, log)
-def _refine_equation(rel, lhs, rhs, assumptions=True):
+def _refine_equation(rel, lhs, rhs, assumptions=True): # noqa:F811
     if ask(Q.complex(lhs) & Q.complex(rhs), assumptions):
         return rel(lhs.args[0], lhs.args[1])
     return rel(lhs, rhs)

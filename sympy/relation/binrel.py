@@ -4,11 +4,10 @@ Basic classes for relational predicates.
 from functools import partial
 
 from sympy.assumptions import AppliedPredicate, Predicate, refine
-from sympy.core import Expr, S
+from sympy.core import S
 from sympy.core.compatibility import ordered
 from sympy.core.sympify import _sympify
 from sympy.logic.boolalg import BooleanAtom
-from sympy.multipledispatch import MDNotImplementedError
 
 
 class BinaryRelation(Predicate):

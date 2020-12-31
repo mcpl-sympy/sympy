@@ -1,4 +1,4 @@
-from sympy import Q, S, symbols
+from sympy import Q, symbols
 from sympy.printing import sstr, pretty, latex
 from sympy.testing.pytest import raises
 
@@ -82,4 +82,3 @@ def test_mul():
     assert -le == Q.ge(-e, -1)
     assert le*-2 == Q.ge(e*-2, -2)
     assert le*3 == Q.le(e*3, 3)
-    
