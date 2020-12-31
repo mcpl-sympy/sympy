@@ -85,7 +85,8 @@ class StrPrinter(Printer):
         return self.stringify(expr.args, " ^ ", PRECEDENCE["BitwiseXor"])
 
     def _print_AppliedPredicate(self, expr):
-        return '%s(%s)' % (self._print(expr.func), self.stringify(expr.args, ", "))
+        return '%s(%s)' % (
+            self._print(expr.function), self.stringify(expr.arguments, ", "))
 
     def _print_Basic(self, expr):
         l = [self._print(o) for o in expr.args]
@@ -879,6 +880,11 @@ class StrPrinter(Printer):
 
     def _print_Str(self, s):
         return self._print(s.name)
+
+    def _print_AppliedBinaryRelation(self, expr):
+        rel, args = expr.function, expr.arguments
+        lhs, rhs = args
+        return "%s %s %s" % (self._print(lhs), rel.str_name, self._print(rhs))
 
 @print_function(StrPrinter)
 def sstr(expr, **settings):

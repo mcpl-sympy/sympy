@@ -153,6 +153,11 @@ def sqrt(arg, evaluate=None):
         return arg.apply_func(sqrt, evaluate=evaluate)
 
     # arg = sympify(arg) is handled by Pow
+
+    from sympy.relation.binrel import AppliedBinaryRelation
+    if isinstance(arg, AppliedBinaryRelation):
+        return arg.apply_func(sqrt, evaluate=evaluate)
+
     return Pow(arg, S.Half, evaluate=evaluate)
 
 
@@ -211,8 +216,8 @@ def cbrt(arg, evaluate=None):
 
     """
 
-    from sympy.assumptions import AppliedPredicate
-    if isinstance(arg, AppliedPredicate) and hasattr(arg, "apply_func"):
+    from sympy.relation.binrel import AppliedBinaryRelation
+    if isinstance(arg, AppliedBinaryRelation):
         return arg.apply_func(cbrt, evaluate=evaluate)
 
     return Pow(arg, Rational(1, 3), evaluate=evaluate)
@@ -313,8 +318,8 @@ def root(arg, n, k=0, evaluate=None):
 
     """
 
-    from sympy.assumptions import AppliedPredicate
-    if isinstance(arg, AppliedPredicate) and hasattr(arg, "apply_func"):
+    from sympy.relation.binrel import AppliedBinaryRelation
+    if isinstance(arg, AppliedBinaryRelation):
         return arg.apply_func(root, n, k=0, evaluate=evaluate)
 
     n = sympify(n)
@@ -369,8 +374,8 @@ def real_root(arg, n=None, evaluate=None):
     root, sqrt
     """
 
-    from sympy.assumptions import AppliedPredicate
-    if isinstance(arg, AppliedPredicate) and hasattr(arg, "apply_func"):
+    from sympy.relation.binrel import AppliedBinaryRelation
+    if isinstance(arg, AppliedBinaryRelation):
         return arg.apply_func(real_root, n=n, evaluate=evaluate)
 
     from sympy.functions.elementary.complexes import Abs, im, sign

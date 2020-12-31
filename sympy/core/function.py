@@ -453,8 +453,8 @@ class Function(Application, Expr):
         if cls is Function:
             return UndefinedFunction(*args, **options)
 
-        from sympy.assumptions import AppliedPredicate
-        if isinstance(args[0], AppliedPredicate) and hasattr(args[0], "apply_func"):
+        from sympy.relation.binrel import AppliedBinaryRelation
+        if isinstance(args[0], AppliedBinaryRelation):
             return args[0].apply_func(cls, *args[1:], **options)
 
         n = len(args)

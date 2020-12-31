@@ -1306,12 +1306,12 @@ def _extract_facts(expr, symbol, check_reversed_rel=True):
         return expr.func(*args)
 
 
-def _extract_all_facts(expr, symbol):
+def _extract_all_facts(expr, symbols):
     facts = set()
-    if isinstance(symbol, Relational):
-        symbols = (symbol, symbol.reversed)
-    else:
-        symbols = (symbol,)
+    if len(symbols) == 1 and isinstance(symbols[0], Relational):
+        rel = symbols[0]
+        symbols = (rel, rel.reversed)
+
     for clause in expr.clauses:
         args = []
         for literal in clause:
@@ -1330,7 +1330,7 @@ def _extract_all_facts(expr, symbol):
 
 def ask(proposition, assumptions=True, context=global_assumptions):
     """
-    Function for inferring properties about objects.
+    Function to evaluate the proposition with assumptions.
 
     **Syntax**
 
@@ -1353,8 +1353,7 @@ def ask(proposition, assumptions=True, context=global_assumptions):
 
     context : AssumptionsContext, optional
         Default assumptions to evaluate the *proposition*. By default,
-        this is ``global_assumptions``.
-
+        this is ``sympy.assumptions.global_assumptions`` variable.
 
     Examples
     ========
@@ -1395,16 +1394,14 @@ def ask(proposition, assumptions=True, context=global_assumptions):
         raise TypeError("assumptions must be a valid logical expression")
 
     if isinstance(proposition, AppliedPredicate):
-        key, expr = proposition.func, sympify(proposition.arg)
-        args = proposition.args
+        key, args = proposition.function, proposition.arguments
     else:
-        key, expr = Q.is_true, sympify(proposition)
-        args = (expr,)
+        key, args = Q.is_true, (proposition,)
 
     assump = CNF.from_prop(assumptions)
     assump.extend(context)
 
-    local_facts = _extract_all_facts(assump, expr)
+    local_facts = _extract_all_facts(assump, args)
 
     known_facts_cnf = get_all_known_facts()
     known_facts_dict = get_known_facts_dict()

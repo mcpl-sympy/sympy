@@ -2045,11 +2045,27 @@ def test_key_extensibility():
         @staticmethod
         def Symbol(expr, assumptions):
             return True
-    register_handler('my_key', MyAskHandler)
-    assert ask(Q.my_key(x)) is True
-    assert ask(Q.my_key(x + 1)) is None
-    remove_handler('my_key', MyAskHandler)
-    del Q.my_key
+    try:
+        register_handler('my_key', MyAskHandler)
+        assert ask(Q.my_key(x)) is True
+        assert ask(Q.my_key(x + 1)) is None
+    finally:
+        remove_handler('my_key', MyAskHandler)
+        del Q.my_key
+    raises(AttributeError, lambda: ask(Q.my_key(x)))
+
+    # New handler system
+    class MyPredicate(Predicate):
+        pass
+    try:
+        Q.my_key = MyPredicate()
+        @Q.my_key.register(Symbol)
+        def _(expr, assumptions):
+            return True
+        assert ask(Q.my_key(x)) is True
+        assert ask(Q.my_key(x+1)) is None
+    finally:
+        del Q.my_key
     raises(AttributeError, lambda: ask(Q.my_key(x)))
 
     # New handler system
@@ -2277,53 +2293,59 @@ def test_custom_AskHandler():
         def Symbol(expr, assumptions):
             if expr in conjuncts(assumptions):
                 return True
-    register_handler('mersenne', MersenneHandler)
-    n = Symbol('n', integer=True)
-    assert ask(Q.mersenne(7))
-    assert ask(Q.mersenne(n), Q.mersenne(n))
-    del Q.mersenne
+    try:
+        register_handler('mersenne', MersenneHandler)
+        n = Symbol('n', integer=True)
+        assert ask(Q.mersenne(7))
+        assert ask(Q.mersenne(n), Q.mersenne(n))
+    finally:
+        del Q.mersenne
 
     # New handler system
     class MersennePredicate(Predicate):
         pass
-    Q.mersenne = MersennePredicate()
-    @Q.mersenne.register(Integer)
-    def _(expr, assumptions):
-        from sympy import log
-        if ask(Q.integer(log(expr + 1, 2))):
-            return True
-    @Q.mersenne.register(Symbol)
-    def _(expr, assumptions):
-        if expr in conjuncts(assumptions):
-            return True
-    assert ask(Q.mersenne(7))
-    assert ask(Q.mersenne(n), Q.mersenne(n))
-    del Q.mersenne
+    try:
+        Q.mersenne = MersennePredicate()
+        @Q.mersenne.register(Integer)
+        def _(expr, assumptions):
+            from sympy import log
+            if ask(Q.integer(log(expr + 1, 2))):
+                return True
+        @Q.mersenne.register(Symbol)
+        def _(expr, assumptions):
+            if expr in conjuncts(assumptions):
+                return True
+        assert ask(Q.mersenne(7))
+        assert ask(Q.mersenne(n), Q.mersenne(n))
+    finally:
+        del Q.mersenne
 
 
 def test_polyadic_predicate():
 
     class SexyPredicate(Predicate):
         pass
-    Q.sexyprime = SexyPredicate()
+    try:
+        Q.sexyprime = SexyPredicate()
 
-    @Q.sexyprime.register(Integer, Integer)
-    def _(int1, int2, assumptions):
-        args = sorted([int1, int2])
-        if not all(ask(Q.prime(a), assumptions) for a in args):
-            return False
-        return args[1] - args[0] == 6
+        @Q.sexyprime.register(Integer, Integer)
+        def _(int1, int2, assumptions):
+            args = sorted([int1, int2])
+            if not all(ask(Q.prime(a), assumptions) for a in args):
+                return False
+            return args[1] - args[0] == 6
 
-    @Q.sexyprime.register(Integer, Integer, Integer)
-    def _(int1, int2, int3, assumptions):
-        args = sorted([int1, int2, int3])
-        if not all(ask(Q.prime(a), assumptions) for a in args):
-            return False
-        return args[2] - args[1] == 6 and args[1] - args[0] == 6
+        @Q.sexyprime.register(Integer, Integer, Integer)
+        def _(int1, int2, int3, assumptions):
+            args = sorted([int1, int2, int3])
+            if not all(ask(Q.prime(a), assumptions) for a in args):
+                return False
+            return args[2] - args[1] == 6 and args[1] - args[0] == 6
 
-    assert ask(Q.sexyprime(5, 11))
-    assert ask(Q.sexyprime(7, 13, 19))
-    del Q.sexyprime
+        assert ask(Q.sexyprime(5, 11))
+        assert ask(Q.sexyprime(7, 13, 19))
+    finally:
+        del Q.sexyprime
 
 
 def test_Predicate_handler_is_unique():

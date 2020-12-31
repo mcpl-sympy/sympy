@@ -3,9 +3,6 @@
 from contextlib import contextmanager
 import inspect
 from sympy.core.assumptions import ManagedProperties
-from sympy.core.cache import cacheit
-from sympy.core.containers import Tuple
-from sympy.core.singleton import S
 from sympy.core.symbol import Str
 from sympy.core.sympify import _sympify
 from sympy.logic.boolalg import Boolean
@@ -17,7 +14,7 @@ from sympy.utilities.source import get_class
 
 class AssumptionsContext(set):
     """
-    Set representing assumptions.
+    Set representing assumptions. Defaultly applies to ``ask()``.
 
     Explanation
     ===========
@@ -32,7 +29,7 @@ class AssumptionsContext(set):
     Default assumption context is ``global_assumptions``, which is empty
     by default.
 
-    >>> from sympy import Q
+    >>> from sympy import ask, Q
     >>> from sympy.assumptions import global_assumptions
     >>> global_assumptions
     AssumptionsContext()
@@ -43,18 +40,20 @@ class AssumptionsContext(set):
     >>> global_assumptions.add(Q.real(x))
     >>> global_assumptions
     AssumptionsContext({Q.real(x)})
-    >>> global_assumptions.add(Q.positive(x))
-    >>> global_assumptions
-    AssumptionsContext({Q.positive(x), Q.real(x)})
+    >>> ask(Q.real(x))
+    True
 
     And you can remove it.
 
     >>> global_assumptions.remove(Q.real(x))
-    >>> global_assumptions
-    AssumptionsContext({Q.positive(x)})
+    >>> print(ask(Q.real(x)))
+    None
 
     ``clear()`` method removes every assumptions.
 
+    >>> global_assumptions.add(Q.positive(x))
+    >>> global_assumptions
+    AssumptionsContext({Q.positive(x)})
     >>> global_assumptions.clear()
     >>> global_assumptions
     AssumptionsContext()
@@ -92,14 +91,14 @@ class AppliedPredicate(Boolean):
     >>> Q.integer(1)
     Q.integer(1)
 
-    ``func`` attribute returns the predicate, and ``args`` attribute
-    returns the argument.
+    ``function`` attribute returns the predicate, and ``arguments``
+    attribute returns the tuple of arguments.
 
     >>> type(Q.integer(1))
     <class 'sympy.assumptions.assume.AppliedPredicate'>
-    >>> Q.integer(1).func
+    >>> Q.integer(1).function
     Q.integer
-    >>> Q.integer(1).args
+    >>> Q.integer(1).arguments
     (1,)
 
     Applied predicate can be evaluated to boolean value.
@@ -113,8 +112,10 @@ class AppliedPredicate(Boolean):
     is_Atom = True  # do not attempt to decompose this
 
     def __new__(cls, predicate, *args):
-        args = Tuple(*[_sympify(a) for a in args])
-        return super().__new__(cls, predicate, args)
+        if not isinstance(predicate, Predicate):
+            raise TypeError("%s is not Predicate." % predicate)
+        args = map(_sympify, args)
+        return super().__new__(cls, predicate, *args)
 
     @property
     def arg(self):
@@ -131,33 +132,42 @@ class AppliedPredicate(Boolean):
         x + 1
 
         """
-        args = self.args
-        if len(args) == 1:
-            return args[0]
-        return args
+        # Will be deprecated
+        args = self._args
+        if len(args) == 2:
+            # backwards compatibility
+            return args[1]
+        raise TypeError("'arg' property is allowed only for unary predicate.")
 
     @property
     def args(self):
-        return self._args[1]
+        # Will be deprecated and return normal Basic.func
+        return self._args[1:]
 
     @property
     def func(self):
+        # Will be deprecated and return normal Basic.func
         return self._args[0]
 
-    @cacheit
-    def sort_key(self, order=None):
-        return (self.class_key(),
-                (2, (self.func.sort_key(), self.arg.sort_key())),
-                S.One.sort_key(), S.One)
+    @property
+    def function(self):
+        # Will be changed to self.args[0] after args overridding is removed
+        return self._args[0]
+
+    @property
+    def arguments(self):
+        # Will be changed to self.args[1:] after args overridding is removed
+        return self._args[1:]
 
     def _eval_ask(self, assumptions):
-        return self.func.eval(self.args, assumptions)
+        return self.function.eval(self.arguments, assumptions)
 
     @property
     def binary_symbols(self):
         from sympy.core.relational import Eq, Ne
-        if self.func.name.name in ['is_true', 'is_false']:
-            i = self.arg
+        from .ask import Q
+        if self.function == Q.is_true:
+            i = self.arguments[0]
             if i.is_Boolean or i.is_Symbol or isinstance(i, (Eq, Ne)):
                 return i.binary_symbols
         return set()

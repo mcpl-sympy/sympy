@@ -80,5 +80,3 @@ Misc
 
 You can find more examples in the in the form of test under directory
 sympy/assumptions/tests/
-
-.. [1] https://en.wikipedia.org/wiki/Mersenne_prime
