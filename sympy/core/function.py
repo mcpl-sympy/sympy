@@ -454,7 +454,7 @@ class Function(Application, Expr):
             return UndefinedFunction(*args, **options)
 
         from sympy.relation.binrel import AppliedBinaryRelation
-        if isinstance(args[0], AppliedBinaryRelation):
+        if args and isinstance(args[0], AppliedBinaryRelation):
             return args[0].apply_func(cls, *args[1:], **options)
 
         n = len(args)
