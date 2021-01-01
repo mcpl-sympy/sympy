@@ -10,6 +10,7 @@ from .function import (_coeff_isneg, expand_complex, expand_multinomial,
 from .logic import fuzzy_bool, fuzzy_not, fuzzy_and
 from .compatibility import as_int, HAS_GMPY, gmpy
 from .parameters import global_parameters
+from .kind import KindDispatcher
 from sympy.utilities.iterables import sift
 from sympy.utilities.exceptions import SymPyDeprecationWarning
 from sympy.multipledispatch import Dispatcher
@@ -265,6 +266,8 @@ class Pow(Expr):
     is_Pow = True
 
     __slots__ = ('is_commutative',)
+
+    _kind_dispatcher = KindDispatcher("Pow_kind_dispatcher", commutative=False)
 
     @cacheit
     def __new__(cls, b, e, evaluate=None):
@@ -1738,8 +1741,15 @@ class Pow(Expr):
             new_e = e.subs(n, n + step)
             return (b**(new_e - e) - 1) * self
 
-power = Dispatcher('power')
-power.add((object, object), Pow)
+
+def power(b, e, evaluate=False, **kwargs):
+    kwargs.update(evaluate=evaluate)
+
+    b, e = _sympify(b), _sympify(e)
+    selected_kind = Pow._kind_dispatcher(b.kind, e.kind)
+    func = selected_kind.pow
+    return func(b, e, **kwargs)
+
 
 from .add import Add
 from .numbers import Integer

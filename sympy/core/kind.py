@@ -81,7 +81,7 @@ class Kind(object, metaclass=KindMeta):
         return inst
 
 
-class UndefinedKind(Kind):
+class _UndefinedKind(Kind):
     """
     Default kind for all SymPy object. If the kind is not defined for
     the object, or if the object cannot infer the kind from its
@@ -100,10 +100,26 @@ class UndefinedKind(Kind):
     def __repr__(self):
         return "UndefinedKind"
 
-UndefinedKind = UndefinedKind()
+    @property
+    def add(self):
+        from .add import Add
+        return Add
+
+    @property
+    def mul(self):
+        from .mul import Mul
+        return Mul
+
+    @property
+    def pow(self):
+        from .power import Pow
+        return Pow
 
 
-class NumberKind(Kind):
+UndefinedKind = _UndefinedKind()
+
+
+class _NumberKind(Kind):
     """
     Kind for all numeric object.
 
@@ -159,10 +175,25 @@ class NumberKind(Kind):
     def __repr__(self):
         return "NumberKind"
 
-NumberKind = NumberKind()
+    @property
+    def add(self):
+        from .add import Add
+        return Add
+
+    @property
+    def mul(self):
+        from .mul import Mul
+        return Mul
+
+    @property
+    def pow(self):
+        from .power import Pow
+        return Pow
+
+NumberKind = _NumberKind()
 
 
-class BooleanKind(Kind):
+class _BooleanKind(Kind):
     """
     Kind for boolean objects.
 
@@ -184,7 +215,7 @@ class BooleanKind(Kind):
     def __repr__(self):
         return "BooleanKind"
 
-BooleanKind = BooleanKind()
+BooleanKind = _BooleanKind()
 
 
 class KindDispatcher:
