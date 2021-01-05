@@ -1355,7 +1355,6 @@ def ask(proposition, assumptions=True, context=global_assumptions):
         Default assumptions to evaluate the *proposition*. By default,
         this is ``sympy.assumptions.global_assumptions`` variable.
 
-
     Examples
     ========
 

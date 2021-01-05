@@ -881,6 +881,11 @@ class StrPrinter(Printer):
     def _print_Str(self, s):
         return self._print(s.name)
 
+    def _print_AppliedBinaryRelation(self, expr):
+        rel, args = expr.function, expr.arguments
+        lhs, rhs = args
+        return "%s %s %s" % (self._print(lhs), rel.str_name, self._print(rhs))
+
 @print_function(StrPrinter)
 def sstr(expr, **settings):
     """Returns the expression as a string.
