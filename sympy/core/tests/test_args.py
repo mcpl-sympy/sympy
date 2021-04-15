@@ -1916,8 +1916,13 @@ def test_sympy__core__symbol__Wild():
     assert _test_args(Wild('x', exclude=[x]))
 
 
+@SKIP("abstract class")
+def test_sympy__equation__equation__SymbolicRelation():
+    pass
+
+
 def test_sympy__equation__equation__Equation():
-    from sympy.core.equation import Equation
+    from sympy.equation import Equation
     assert _test_args(Equation(1,1))
 
 
