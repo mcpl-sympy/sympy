@@ -3,7 +3,10 @@ from sympy.core import Basic
 from sympy.core.sympify import _sympify
 
 
-class Equation(Basic):
+class SymbolicRelation(Basic):
+
+    is_Relational = True
+
     def __new__(cls, lhs, rhs, **kwargs):
         lhs = _sympify(lhs)
         rhs = _sympify(rhs)
@@ -15,6 +18,10 @@ class Equation(Basic):
 
     @property
     def rhs(self):
-        return self.args[0]
+        return self.args[1]
+
+
+class Equation(SymbolicRelation):
+    rel_op = "=="
 
 Eqn = Equation

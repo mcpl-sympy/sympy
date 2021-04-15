@@ -225,6 +225,9 @@ class PrettyPrinter(Printer):
         pform = prettyForm(*stringPict.next(l, op, r))
         return pform
 
+    def _print_SymbolicRelation(self, expr):
+        return self._print_Relational(expr)
+
     def _print_Not(self, e):
         from sympy import Equivalent, Implies
         if self._use_unicode:
