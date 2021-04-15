@@ -22,7 +22,7 @@ from sympy import (
     AccumBounds, reduced_totient, primenu, primeomega, SingularityFunction,
     stieltjes, mathieuc, mathieus, mathieucprime, mathieusprime,
     UnevaluatedExpr, Quaternion, I, KroneckerProduct, LambertW,
-    Eq, Ne, Gt, Ge, Lt, Le, Eqn,)
+    Ne, Gt, Ge, Lt, Le, Eqn,)
 
 from sympy.ntheory.factor_ import udivisor_sigma
 
