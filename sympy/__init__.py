@@ -49,7 +49,7 @@ def __sympy_debug():
 SYMPY_DEBUG = __sympy_debug()  # type: bool
 
 from .core import (sympify, SympifyError, cacheit, Basic, Atom,
-        preorder_traversal, S, Equation, Eqn, Expr, AtomicExpr, UnevaluatedExpr, Symbol,
+        preorder_traversal, S, Expr, AtomicExpr, UnevaluatedExpr, Symbol,
         Wild, Dummy, symbols, var, Number, Float, Rational, Integer,
         NumberSymbol, RealNumber, igcd, ilcm, seterr, E, I, nan, oo, pi, zoo,
         AlgebraicNumber, comp, mod_inverse, Pow, integer_nthroot, integer_log,
@@ -151,6 +151,8 @@ from .concrete import product, Product, summation, Sum
 from .discrete import (fft, ifft, ntt, intt, fwht, ifwht, mobius_transform,
         inverse_mobius_transform, convolution, covering_product,
         intersecting_product)
+
+from .equation import (Equation, Eqn,)
 
 from .simplify import (simplify, hypersimp, hypersimilar, logcombine,
         separatevars, posify, besselsimp, kroneckersimp, signsimp, bottom_up,
@@ -256,7 +258,7 @@ evalf._create_evalf_table()
 __all__ = [
     # sympy.core
     'sympify', 'SympifyError', 'cacheit', 'Basic', 'Atom',
-    'preorder_traversal', 'S', 'Equation', 'Eqn', 'Expr', 'AtomicExpr', 'UnevaluatedExpr',
+    'preorder_traversal', 'S', 'Expr', 'AtomicExpr', 'UnevaluatedExpr',
     'Symbol', 'Wild', 'Dummy', 'symbols', 'var', 'Number', 'Float',
     'Rational', 'Integer', 'NumberSymbol', 'RealNumber', 'igcd', 'ilcm',
     'seterr', 'E', 'I', 'nan', 'oo', 'pi', 'zoo', 'AlgebraicNumber', 'comp',
@@ -375,6 +377,9 @@ __all__ = [
     'fft', 'ifft', 'ntt', 'intt', 'fwht', 'ifwht', 'mobius_transform',
     'inverse_mobius_transform', 'convolution', 'covering_product',
     'intersecting_product',
+
+    # sympy.equation
+    'Equation', 'Eqn',
 
     # sympy.simplify
     'simplify', 'hypersimp', 'hypersimilar', 'logcombine', 'separatevars',

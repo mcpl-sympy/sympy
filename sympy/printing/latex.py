@@ -1581,7 +1581,7 @@ class LatexPrinter(Printer):
 
         return name
 
-    def _helper_print_relations(self, lhs, rel_op, rhs):
+    def _print_Relational(self, expr):
         if self._settings['itex']:
             gt = r"\gt"
             lt = r"\lt"
@@ -1600,12 +1600,6 @@ class LatexPrinter(Printer):
 
         return "%s %s %s" % (self._print(lhs),
                              charmap[rel_op], self._print(rhs))
-
-    def _print_Relational(self, e):
-        return self._helper_print_relations(e.lhs, e.rel_op, e.rhs)
-
-    def _print_Equation(self, e):
-        return self._helper_print_relations(e.lhs, '==', e.rhs)
 
     def _print_Piecewise(self, expr):
         ecpairs = [r"%s & \text{for}\: %s" % (self._print(e), self._print(c))

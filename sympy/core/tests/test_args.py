@@ -618,11 +618,6 @@ def test_sympy__core__containers__Tuple():
     assert _test_args(Tuple(x, y, z, 2))
 
 
-def test_sympy__core__equation__Equation():
-    from sympy.core.equation import Equation
-    assert _test_args(Equation(1,1))
-
-
 def test_sympy__core__expr__AtomicExpr():
     from sympy.core.expr import AtomicExpr
     assert _test_args(AtomicExpr())
@@ -1919,6 +1914,11 @@ def test_sympy__core__symbol__Symbol():
 def test_sympy__core__symbol__Wild():
     from sympy.core.symbol import Wild
     assert _test_args(Wild('x', exclude=[x]))
+
+
+def test_sympy__equation__equation__Equation():
+    from sympy.core.equation import Equation
+    assert _test_args(Equation(1,1))
 
 
 @SKIP("abstract class")
