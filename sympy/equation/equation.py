@@ -22,8 +22,6 @@ class SymbolicRelation(Basic):
 
     """
 
-    is_Relational = True
-
     def __new__(cls, lhs, rhs, **kwargs):
         lhs = _sympify(lhs)
         rhs = _sympify(rhs)
