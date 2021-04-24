@@ -1,4 +1,4 @@
-from sympy import Eqn, Equation, symbols
+from sympy import Eqn, symbols
 
 x, y, z = symbols('x y z')
 

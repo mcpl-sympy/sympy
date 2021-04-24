@@ -1,4 +1,3 @@
-from sympy.core import Basic
 from sympy.multipledispatch import Dispatcher
 from .equation import SymbolicRelation, Equation
 
@@ -35,12 +34,12 @@ class RelOp(SymbolicRelation):
     def register(cls, type1, type2):
         return cls.eval_dispatcher.register(type1, type2)
 
-    def doit(self, **options):
+    def doit(self, **hints):
         if hints.get('deep', True):
             args = [arg.doit(**hints) for arg in self.args]
         else:
             args = self.args
-        return self.func(*arg, evaluate=True)
+        return self.func(*args, evaluate=True)
 
     def _eval_refine(self, assumptions=True):
         if assumptions == True:
