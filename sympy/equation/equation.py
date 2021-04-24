@@ -14,7 +14,33 @@ class SymbolicRelation(Basic):
     Symbolic relation includes symbolic binary relations and unevaluated
     operations between symbolic relations.
     """
-    pass
+    # after operations are migrated to kind dispatching system,
+    # remove _op_priority.
+    _op_priority = 1000
+
+    def __add__(self, other):
+        return AddSides(self, other, evaluate=True)
+
+    def __radd__(self, other):
+        return AddSides(other, self, evaluate=True)
+
+    def __sub__(self, other):
+        return SubtractSides(self, other, evaluate=True)
+
+    def __rsub__(self, other):
+        return SubtractSides(other, self, evaluate=True)
+
+    def __mul__(self, other):
+        return MultiplySides(self, other, evaluate=True)
+
+    def __rmul__(self, other):
+        return MultiplySides(other, self, evaluate=True)
+
+    def __truediv__(self, other):
+        return DivideSides(self, other, evaluate=True)
+
+    def __rtruediv__(self, other):
+        return DivideSides(other, self, evaluate=True)
 
 
 class SymbolicBinRel(SymbolicRelation):
@@ -101,3 +127,6 @@ class Equation(SymbolicBinRel):
     rel_op = "=="
 
 Eqn = Equation
+
+
+from .relop import AddSides, SubtractSides, MultiplySides, DivideSides
