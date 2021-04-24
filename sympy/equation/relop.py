@@ -6,6 +6,7 @@ from .equation import SymbolicRelation, Equation
 class RelOp(SymbolicRelation):
     """
     Base class for every unevaluated operation between symbolic relations.
+
     """
     def __new__(cls, arg1, arg2, evaluate=False):
         if all(not isinstance(arg, SymbolicRelation) for arg in [arg1, arg2]):
@@ -49,6 +50,8 @@ class RelOp(SymbolicRelation):
 
 class AddSides(RelOp):
     """
+    Add each side of two binary relations.
+
     Examples
     ========
 
@@ -77,6 +80,8 @@ def _(eqn1, eqn2, assumptions=None):
 
 class SubtractSides(RelOp):
     """
+    Subtract each side of two binary relations.
+
     Examples
     ========
 
@@ -93,6 +98,8 @@ class SubtractSides(RelOp):
 
     >>> SubtractSides(Eqn(x, y), z, evaluate=True)
     Eqn(x - z, y - z)
+    >>> SubtractSides(z, Eqn(x, y), evaluate=True)
+    Eqn(-x + z, -y + z)
     """
     eval_dispatcher = Dispatcher('SubtractSides_dispatcher')
 
@@ -105,6 +112,8 @@ def _(eqn1, eqn2, assumptions=None):
 
 class MultiplySides(RelOp):
     """
+    Multiply each side of two binary relations.
+
     Examples
     ========
 
@@ -128,4 +137,36 @@ class MultiplySides(RelOp):
 def _(eqn1, eqn2, assumptions=None):
     lhs = eqn1.lhs * eqn2.lhs
     rhs = eqn1.rhs * eqn2.rhs
+    return Equation(lhs, rhs)
+
+
+class DivideSides(RelOp):
+    """
+    Divide each side of two binary relations.
+
+    Examples
+    ========
+
+    >>> from sympy import Eqn
+    >>> from sympy.equation.relop import DivideSides
+    >>> from sympy.abc import x, y, z
+
+    ``DivideSides`` can multiply two relations.
+
+    >>> DivideSides(Eqn(x, y), Eqn(y, z), evaluate=True)
+    Eqn(x/y, y/z)
+
+    ``DivideSides`` can divide each side of the relation by an expression.
+
+    >>> DivideSides(Eqn(x, y), z, evaluate=True)
+    Eqn(x/z, y/z)
+    >>> DivideSides(z, Eqn(x, y), evaluate=True)
+    Eqn(z/x, z/y)
+    """
+    eval_dispatcher = Dispatcher('MultiplySides_dispatcher')
+
+@DivideSides.register(Equation, Equation)
+def _(eqn1, eqn2, assumptions=None):
+    lhs = eqn1.lhs / eqn2.lhs
+    rhs = eqn1.rhs / eqn2.rhs
     return Equation(lhs, rhs)
