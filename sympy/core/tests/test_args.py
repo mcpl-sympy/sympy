@@ -1920,9 +1920,43 @@ def test_sympy__equation__equation__SymbolicRelation():
     pass
 
 
+@SKIP("abstract class")
+def test_sympy__equation__equation__SymbolicBinRel():
+    pass
+
+
 def test_sympy__equation__equation__Equation():
     from sympy.equation import Equation
     assert _test_args(Equation(1,1))
+
+
+@SKIP("abstract class")
+def test_sympy__equation__relop__RelOp():
+    pass
+
+
+def test_sympy__equation__relop__AddSides():
+    from sympy.equation import Equation
+    from sympy.equation.relop import AddSides
+    assert _test_args(AddSides(Equation(1, 1), Equation(2, 2)))
+
+
+def test_sympy__equation__relop__SubtractSides():
+    from sympy.equation import Equation
+    from sympy.equation.relop import SubtractSides
+    assert _test_args(SubtractSides(Equation(1, 1), Equation(2, 2)))
+
+
+def test_sympy__equation__relop__MultiplySides():
+    from sympy.equation import Equation
+    from sympy.equation.relop import MultiplySides
+    assert _test_args(MultiplySides(Equation(1, 1), Equation(2, 2)))
+
+
+def test_sympy__equation__relop__DivideSides():
+    from sympy.equation import Equation
+    from sympy.equation.relop import DivideSides
+    assert _test_args(DivideSides(Equation(1, 1), Equation(2, 2)))
 
 
 @SKIP("abstract class")
