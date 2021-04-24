@@ -151,7 +151,7 @@ class DivideSides(RelOp):
     >>> from sympy.equation.relop import DivideSides
     >>> from sympy.abc import x, y, z
 
-    ``DivideSides`` can multiply two relations.
+    ``DivideSides`` can divide two relations.
 
     >>> DivideSides(Eqn(x, y), Eqn(y, z), evaluate=True)
     Eqn(x/y, y/z)
