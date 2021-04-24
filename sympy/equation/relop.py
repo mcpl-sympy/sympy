@@ -101,3 +101,31 @@ def _(eqn1, eqn2, assumptions=None):
     lhs = eqn1.lhs - eqn2.lhs
     rhs = eqn1.rhs - eqn2.rhs
     return Equation(lhs, rhs)
+
+
+class MultiplySides(RelOp):
+    """
+    Examples
+    ========
+
+    >>> from sympy import Eqn
+    >>> from sympy.equation.relop import MultiplySides
+    >>> from sympy.abc import x, y, z
+
+    ``MultiplySides`` can multiply two relations.
+
+    >>> MultiplySides(Eqn(x, y), Eqn(y, z), evaluate=True)
+    Eqn(x*y, y*z)
+
+    ``MultiplySides`` can multiply an expression to each side of the relation.
+
+    >>> MultiplySides(Eqn(x, y), z, evaluate=True)
+    Eqn(x*z, y*z)
+    """
+    eval_dispatcher = Dispatcher('MultiplySides_dispatcher')
+
+@MultiplySides.register(Equation, Equation)
+def _(eqn1, eqn2, assumptions=None):
+    lhs = eqn1.lhs * eqn2.lhs
+    rhs = eqn1.rhs * eqn2.rhs
+    return Equation(lhs, rhs)
