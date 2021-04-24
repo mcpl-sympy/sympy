@@ -6,6 +6,19 @@ from .sideproxy import SideProxy
 
 class SymbolicRelation(Basic):
     """
+    Base class for all symbolic relations.
+
+    Explanation
+    ===========
+
+    Symbolic relation includes symbolic binary relations and unevaluated
+    operations between symbolic relations.
+    """
+    pass
+
+
+class SymbolicBinRel(SymbolicRelation):
+    """
     Base class for all symbolic binary relations.
 
     Explanation
@@ -53,7 +66,7 @@ class SymbolicRelation(Basic):
         return SideProxy(self, "rhs")
 
 
-class Equation(SymbolicRelation):
+class Equation(SymbolicBinRel):
     """
     Symbolic equation.
 
