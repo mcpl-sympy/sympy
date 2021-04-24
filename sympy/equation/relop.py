@@ -61,7 +61,7 @@ class AddSides(RelOp):
     >>> AddSides(Eqn(x, y), Eqn(y, z), evaluate=True)
     Eqn(x + y, y + z)
 
-    ``AddSides`` can add a expression to each side of the relation.
+    ``AddSides`` can add an expression to each side of the relation.
 
     >>> AddSides(Eqn(x, y), z, evaluate=True)
     Eqn(x + z, y + z)
@@ -72,4 +72,32 @@ class AddSides(RelOp):
 def _(eqn1, eqn2, assumptions=None):
     lhs = eqn1.lhs + eqn2.lhs
     rhs = eqn1.rhs + eqn2.rhs
+    return Equation(lhs, rhs)
+
+
+class SubtractSides(RelOp):
+    """
+    Examples
+    ========
+
+    >>> from sympy import Eqn
+    >>> from sympy.equation.relop import SubtractSides
+    >>> from sympy.abc import x, y, z
+
+    ``SubtractSides`` can subtract two relations.
+
+    >>> SubtractSides(Eqn(x, y), Eqn(y, z), evaluate=True)
+    Eqn(x - y, y - z)
+
+    ``SubtractSides`` can subtract an expression to each side of the relation.
+
+    >>> SubtractSides(Eqn(x, y), z, evaluate=True)
+    Eqn(x - z, y - z)
+    """
+    eval_dispatcher = Dispatcher('SubtractSides_dispatcher')
+
+@SubtractSides.register(Equation, Equation)
+def _(eqn1, eqn2, assumptions=None):
+    lhs = eqn1.lhs - eqn2.lhs
+    rhs = eqn1.rhs - eqn2.rhs
     return Equation(lhs, rhs)
