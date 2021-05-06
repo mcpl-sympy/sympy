@@ -1776,7 +1776,7 @@ class Basic(Printable, metaclass=ManagedProperties):
 
     def _eval_rewrite(self, pattern, method, **hints):
         if hints.get('deep', True):
-            args = [a._eval_rewrite(pattern, method, **hints) 
+            args = [a._eval_rewrite(pattern, method, **hints)
                         if isinstance(a, Basic) else a for a in self.args]
         else:
             args = self.args
