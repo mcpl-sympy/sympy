@@ -1698,7 +1698,7 @@ class Basic(Printable, metaclass=ManagedProperties):
         else:
             return None
 
-    def rewrite(self, *args, deep=True, **hints):
+    def rewrite(self, *args, **hints):
         """
         Rewrite *self* using a defined rule.
 
@@ -1762,7 +1762,7 @@ class Basic(Printable, metaclass=ManagedProperties):
             clsname = rule.__class__.__name__
             method = "_eval_rewrite_as_%s" % clsname
 
-        hints.update(deep=deep, _rule=rule)
+        hints.update(_rule=rule)
 
         if pattern:
             if iterable(pattern[0]):
