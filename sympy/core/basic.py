@@ -1762,7 +1762,7 @@ class Basic(Printable, metaclass=ManagedProperties):
             clsname = rule.__class__.__name__
             method = "_eval_rewrite_as_%s" % clsname
 
-        hints.update(rule=rule)
+        hints.update(_rule=rule)
 
         if pattern:
             if iterable(pattern[0]):
@@ -1776,7 +1776,8 @@ class Basic(Printable, metaclass=ManagedProperties):
 
     def _eval_rewrite(self, pattern, method, **hints):
         if hints.get('deep', True):
-            args = [a._eval_rewrite(pattern, method, **hints) for a in self.args]
+            args = [a._eval_rewrite(pattern, method, **hints) 
+                        if isinstance(a, Basic) else a for a in self.args]
         else:
             args = self.args
 
@@ -1786,7 +1787,8 @@ class Basic(Printable, metaclass=ManagedProperties):
                     rewritten = getattr(self, method)(*args, **hints)
                 except TypeError:
                     # old signature
-                    rewritten = getattr(self, method)(*args)
+                    hints.pop('_rule')
+                    rewritten = getattr(self, method)(*args, **hints)
                 if rewritten is not None:
                     return rewritten
 
