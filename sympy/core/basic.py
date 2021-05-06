@@ -1762,7 +1762,7 @@ class Basic(Printable, metaclass=ManagedProperties):
             clsname = rule.__class__.__name__
             method = "_eval_rewrite_as_%s" % clsname
 
-        hints.update(_rule=rule)
+        hints.update(deep=deep, _rule=rule)
 
         if pattern:
             if iterable(pattern[0]):
